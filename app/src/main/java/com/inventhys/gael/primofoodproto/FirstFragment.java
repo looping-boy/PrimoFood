@@ -1,19 +1,45 @@
 package com.inventhys.gael.primofoodproto;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.label.ImageLabel;
+import com.google.mlkit.vision.label.ImageLabeler;
+import com.google.mlkit.vision.label.ImageLabeling;
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FirstFragment extends Fragment {
 
+    private static final String TAG = "LABELLING";
     private FragmentFirstBinding binding;
+
+    int pictureIndex = 0;
+    private int[] pictures = new int[]{
+            R.drawable.carrefour_middle_3_20220831,
+            R.drawable.carrefour_middle_shelf_1,
+            R.drawable.carrefour_middle_shelf_3,
+            R.drawable.carrefour_top_1_20220831,
+            R.drawable.carrefour_top_shelf_1,
+            R.drawable.lidl_1_20220831,
+            R.drawable.lidl_4_20220831
+    };
 
     @Override
     public View onCreateView(
@@ -36,12 +62,92 @@ public class FirstFragment extends Fragment {
                         .navigate(R.id.action_FirstFragment_to_SecondFragment);
             }
         });
+
+        updatePicture();
+
+        binding.analyze.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pictureResId = pictures[pictureIndex];
+                Bitmap bitmap = loadBitmap(pictureResId);
+                analysePicture(bitmap);
+            }
+        });
+
+        binding.previouspicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pictureIndex == 0) {
+                    pictureIndex = pictures.length - 1;
+                } else {
+                    --pictureIndex;
+                }
+                updatePicture();
+            }
+        });
+
+        binding.nextpicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pictureIndex == pictures.length - 1) {
+                    pictureIndex = 0;
+                } else {
+                    ++pictureIndex;
+                }
+                updatePicture();
+            }
+        });
+    }
+
+    private void updatePicture() {
+        int pictureResId = pictures[pictureIndex];
+        binding.picturePreview.setImageResource(pictureResId);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    private Bitmap loadBitmap(@DrawableRes int resId) {
+        return BitmapFactory.decodeResource(getResources(), resId);
+    }
+
+    private void analysePicture(@NonNull Bitmap bitmap) {
+        int rotationDegree = 0; // TODO: maybe try random values to see if same success rate
+        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+
+        // To use default options:
+        ImageLabeler labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS);
+
+        // Or, to set the minimum confidence required:
+        // ImageLabelerOptions options =
+        //     new ImageLabelerOptions.Builder()
+        //         .setConfidenceThreshold(0.7f)
+        //         .build();
+        // ImageLabeler labeler = ImageLabeling.getClient(options);
+
+        labeler.process(image)
+                .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
+                    @Override
+                    public void onSuccess(List<ImageLabel> labels) {
+                        // Task completed successfully
+                        Log.i(TAG, labels.size() + " labels found in the picture");
+                        for(ImageLabel imageLabel : labels) {
+                            Log.i(TAG, "  " + imageLabel.getText());
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Task failed with an exception
+                        // ...
+                        Log.i(TAG, "Could not find lables " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
     }
 
 }

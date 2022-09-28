@@ -17,6 +17,8 @@ import com.inventhys.gael.primofoodproto.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+// MLKIT: https://developers.google.com/ml-kit/guides
+// Image Labelling: https://developers.google.com/ml-kit/vision/image-labeling/android
 
 public class MainActivity extends AppCompatActivity {
 
