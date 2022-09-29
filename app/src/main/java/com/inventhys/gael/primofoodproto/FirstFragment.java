@@ -20,6 +20,10 @@ import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
+import com.google.mlkit.vision.objects.DetectedObject;
+import com.google.mlkit.vision.objects.ObjectDetection;
+import com.google.mlkit.vision.objects.ObjectDetector;
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
 
 import java.util.ArrayList;
@@ -65,12 +69,21 @@ public class FirstFragment extends Fragment {
 
         updatePicture();
 
-        binding.analyze.setOnClickListener(new View.OnClickListener() {
+        binding.labellize.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int pictureResId = pictures[pictureIndex];
                 Bitmap bitmap = loadBitmap(pictureResId);
-                analysePicture(bitmap);
+                labellizePicture(bitmap);
+            }
+        });
+
+        binding.recognize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pictureResId = pictures[pictureIndex];
+                Bitmap bitmap = loadBitmap(pictureResId);
+                recognizePicture(bitmap);
             }
         });
 
@@ -114,7 +127,7 @@ public class FirstFragment extends Fragment {
         return BitmapFactory.decodeResource(getResources(), resId);
     }
 
-    private void analysePicture(@NonNull Bitmap bitmap) {
+    private void labellizePicture(@NonNull Bitmap bitmap) {
         int rotationDegree = 0; // TODO: maybe try random values to see if same success rate
         InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
 
@@ -144,10 +157,49 @@ public class FirstFragment extends Fragment {
                     public void onFailure(@NonNull Exception e) {
                         // Task failed with an exception
                         // ...
-                        Log.i(TAG, "Could not find lables " + e.getMessage());
+                        Log.i(TAG, "Could not find labels " + e.getMessage());
                         e.printStackTrace();
                     }
                 });
+    }
+
+    private void recognizePicture(@NonNull Bitmap bitmap) {
+        int rotationDegree = 0; // TODO: maybe try random values to see if same success rate
+        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+
+        ObjectDetectorOptions options =
+                new ObjectDetectorOptions.Builder()
+                        .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
+                        .enableMultipleObjects()
+                        .enableClassification()  // Optional
+                        .build();
+
+        ObjectDetector objectDetector = ObjectDetection.getClient(options);
+
+        objectDetector.process(image)
+                .addOnSuccessListener(
+                        new OnSuccessListener<List<DetectedObject>>() {
+                            @Override
+                            public void onSuccess(List<DetectedObject> detectedObjects) {
+                                // Task completed successfully
+                                Log.i(TAG, detectedObjects.size() + " objects found in the picture");
+                                for(DetectedObject detectedObject : detectedObjects) {
+                                    Log.i(TAG, "  " + detectedObject.getLabels().size() + " labels");
+                                    for(DetectedObject.Label label : detectedObject.getLabels()) {
+                                        Log.i(TAG, "  " + label.getText());
+                                    }
+                                }
+                            }
+                        })
+                .addOnFailureListener(
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                // Task failed with an exception
+                                Log.i(TAG, "Could not find labels " + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        });
     }
 
 }
