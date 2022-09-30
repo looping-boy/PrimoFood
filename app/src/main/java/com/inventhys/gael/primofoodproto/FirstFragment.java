@@ -112,6 +112,17 @@ public class FirstFragment extends Fragment {
         });
     }
 
+    private int getAngle() {
+        String text = binding.angle.getText().toString();
+        try {
+            int value = Integer.parseInt(text);
+            return value;
+        } catch (NumberFormatException exception) {
+            exception.printStackTrace();
+        }
+        return 0;
+    }
+
     private void updatePicture() {
         int pictureResId = pictures[pictureIndex];
         binding.picturePreview.setImageResource(pictureResId);
@@ -128,7 +139,7 @@ public class FirstFragment extends Fragment {
     }
 
     private void labellizePicture(@NonNull Bitmap bitmap) {
-        int rotationDegree = 0; // TODO: maybe try random values to see if same success rate
+        int rotationDegree = getAngle();
         InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
 
         // To use default options:
@@ -164,7 +175,7 @@ public class FirstFragment extends Fragment {
     }
 
     private void recognizePicture(@NonNull Bitmap bitmap) {
-        int rotationDegree = 0; // TODO: maybe try random values to see if same success rate
+        int rotationDegree = getAngle();
         InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
 
         ObjectDetectorOptions options =
