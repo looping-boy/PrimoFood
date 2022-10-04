@@ -15,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
@@ -24,6 +25,10 @@ import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
+import com.google.mlkit.vision.text.Text;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.TextRecognizer;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
 
 import java.util.ArrayList;
@@ -36,6 +41,7 @@ public class FirstFragment extends Fragment {
 
     int pictureIndex = 0;
     private int[] pictures = new int[]{
+            R.drawable.zoom,
             R.drawable.carrefour_middle_3_20220831,
             R.drawable.carrefour_middle_shelf_1,
             R.drawable.carrefour_middle_shelf_3,
@@ -87,6 +93,15 @@ public class FirstFragment extends Fragment {
             }
         });
 
+        binding.textrecognition.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pictureResId = pictures[pictureIndex];
+                Bitmap bitmap = loadBitmap(pictureResId);
+                textRecognition(bitmap);
+            }
+        });
+
         binding.previouspicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,6 +125,7 @@ public class FirstFragment extends Fragment {
                 updatePicture();
             }
         });
+
     }
 
     private int getAngle() {
@@ -211,6 +227,30 @@ public class FirstFragment extends Fragment {
                                 e.printStackTrace();
                             }
                         });
+    }
+
+    private void textRecognition(@NonNull Bitmap bitmap) {
+        int rotationDegree = getAngle();
+        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+        TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+        Task<Text> result =
+                recognizer.process(image)
+                        .addOnSuccessListener(new OnSuccessListener<Text>() {
+                            @Override
+                            public void onSuccess(Text visionText) {
+                                // Task completed successfully
+                                Log.i(TAG, "TEXT: " + visionText.getText());
+                            }
+                        })
+                        .addOnFailureListener(
+                                new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Task failed with an exception
+                                        Log.i(TAG, "Could not find texts " + e.getMessage());
+                                        e.printStackTrace();
+                                    }
+                                });
     }
 
 }
