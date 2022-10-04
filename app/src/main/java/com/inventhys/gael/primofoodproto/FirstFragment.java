@@ -41,7 +41,11 @@ public class FirstFragment extends Fragment {
 
     int pictureIndex = 0;
     private int[] pictures = new int[]{
+            R.drawable.tni,
             R.drawable.zoom,
+            R.drawable.casino_20221004_121529,
+            R.drawable.casino_20221004_121401,
+            R.drawable.casino_20221004_121345,
             R.drawable.carrefour_middle_3_20220831,
             R.drawable.carrefour_middle_shelf_1,
             R.drawable.carrefour_middle_shelf_3,
