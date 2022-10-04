@@ -16,6 +16,10 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
@@ -103,6 +107,15 @@ public class FirstFragment extends Fragment {
                 int pictureResId = pictures[pictureIndex];
                 Bitmap bitmap = loadBitmap(pictureResId);
                 textRecognition(bitmap);
+            }
+        });
+
+        binding.barCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pictureResId = pictures[pictureIndex];
+                Bitmap bitmap = loadBitmap(pictureResId);
+                barCode(bitmap);
             }
         });
 
@@ -257,4 +270,38 @@ public class FirstFragment extends Fragment {
                                 });
     }
 
+    private void barCode(@NonNull Bitmap bitmap) {
+        int rotationDegree = getAngle();
+        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+
+//        BarcodeScannerOptions options =
+//                new BarcodeScannerOptions.Builder()
+//                        .setBarcodeFormats(
+//                                Barcode.FORMAT_EAN_13,
+//                                Barcode.FORMAT_EAN_8)
+//                        .build();
+        //BarcodeScanner scanner = BarcodeScanning.getClient(options);
+
+        BarcodeScanner scanner = BarcodeScanning.getClient();
+
+        Task<List<Barcode>> result = scanner.process(image)
+                .addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
+                    @Override
+                    public void onSuccess(List<Barcode> barcodes) {
+                        // Task completed successfully
+                        Log.i(TAG, "Found " + barcodes.size() + " barcodes");
+                        for(Barcode barcode: barcodes) {
+                            Log.i(TAG, "Barcode: " + barcode.getDisplayValue());
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Task failed with an exception
+                        Log.i(TAG, "Could not find bar codes " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
+    }
 }
