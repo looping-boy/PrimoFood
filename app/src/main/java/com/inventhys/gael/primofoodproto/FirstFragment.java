@@ -2,6 +2,9 @@ package com.inventhys.gael.primofoodproto;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,6 +48,10 @@ public class FirstFragment extends Fragment {
 
     int pictureIndex = 0;
     private int[] pictures = new int[]{
+            R.drawable.carann1,
+            R.drawable.carann2,
+            R.drawable.carann3,
+            R.drawable.carrefour199,
             R.drawable.tni,
             R.drawable.zoom,
             R.drawable.casino_20221004_121529,
@@ -58,6 +65,9 @@ public class FirstFragment extends Fragment {
             R.drawable.lidl_1_20220831,
             R.drawable.lidl_4_20220831
     };
+
+    private List<Rect> boxes = new ArrayList<>();
+    private Paint paint = new Paint();
 
     @Override
     public View onCreateView(
@@ -161,6 +171,25 @@ public class FirstFragment extends Fragment {
         binding.picturePreview.setImageResource(pictureResId);
     }
 
+    private void updatePictureWithBoxes() {
+        int pictureResId = pictures[pictureIndex];
+        Bitmap bitmap = loadBitmap(pictureResId);
+        if (bitmap != null) {
+            Bitmap target = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            if (target != null) {
+                Canvas canvas = new Canvas(target);
+                canvas.drawBitmap(bitmap, 0, 0, null);
+                paint.setColor(0xFFFF0000);
+                paint.setStrokeWidth(3);
+                paint.setStyle(Paint.Style.STROKE);
+                for(Rect rect : boxes) {
+                    canvas.drawRect(rect, paint);
+                }
+                binding.picturePreview.setImageBitmap(target);
+            }
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -257,6 +286,13 @@ public class FirstFragment extends Fragment {
                             public void onSuccess(Text visionText) {
                                 // Task completed successfully
                                 Log.i(TAG, "TEXT: " + visionText.getText());
+                                boxes.clear();
+                                List<Text.TextBlock> blocks = visionText.getTextBlocks();
+                                for (Text.TextBlock block : blocks) {
+                                    Rect rect = block.getBoundingBox();
+                                    boxes.add(rect);
+                                }
+                                updatePictureWithBoxes();
                             }
                         })
                         .addOnFailureListener(
