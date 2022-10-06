@@ -2,8 +2,12 @@ package com.inventhys.gael.primofoodproto;
 
 import android.Manifest;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +28,7 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentSecondBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.arnaudguyon.perm.Perm;
@@ -37,6 +42,9 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
     private FragmentSecondBinding binding;
     private CameraScanner cameraScanner;
+    private List<Rect> boxes = new ArrayList<>();
+    private Paint paint = new Paint();
+    private Bitmap bitmapRect;
 
     @Override
     public View onCreateView(
@@ -72,6 +80,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
     @Override
     public void onDestroyView() {
+        cameraScanner.stopScan();
         super.onDestroyView();
         binding = null;
     }
@@ -96,14 +105,17 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                             @Override
                             public void onSuccess(Text visionText) {
                                 // Task completed successfully
-                                Log.i(TAG, "TEXT: " + visionText.getText());
-//                                boxes.clear();
-//                                List<Text.TextBlock> blocks = visionText.getTextBlocks();
-//                                for (Text.TextBlock block : blocks) {
-//                                    Rect rect = block.getBoundingBox();
-//                                    boxes.add(rect);
-//                                }
-//                                updatePictureWithBoxes();
+                                String text = visionText.getText();
+                                if (!TextUtils.isEmpty(text)) {
+                                    Log.i(TAG, "TEXT: " + visionText.getText());
+                                    boxes.clear();
+                                    List<Text.TextBlock> blocks = visionText.getTextBlocks();
+                                    for (Text.TextBlock block : blocks) {
+                                        Rect rect = block.getBoundingBox();
+                                        boxes.add(rect);
+                                    }
+                                    updatePictureWithBoxes(imageProxy);
+                                }
                                 imageProxy.close();
                             }
                         })
@@ -123,5 +135,24 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
     @Override
     public void onImageCaptured(@NonNull ImageProxy imageProxy, @NonNull InputImage inputImage) {
         textRecognition(imageProxy, inputImage);
+    }
+
+    private void updatePictureWithBoxes(@NonNull ImageProxy imageProxy) {
+        if ((bitmapRect == null) || (bitmapRect.isRecycled()) || (bitmapRect.getWidth() != imageProxy.getWidth()) || (bitmapRect.getHeight() != imageProxy.getHeight())) {
+            bitmapRect = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
+        }
+        if (bitmapRect != null) {
+            Canvas canvas = new Canvas(bitmapRect);
+            canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(0xFFFFFF00);
+            canvas.drawRect(1,1, bitmapRect.getWidth() - 2, bitmapRect.getHeight() - 2, paint);
+            paint.setColor(0xFFFF0000);
+            for(Rect rect : boxes) {
+                canvas.drawRect(rect, paint);
+            }
+            binding.bitmapView.setImageBitmap(bitmapRect);
+        }
     }
 }

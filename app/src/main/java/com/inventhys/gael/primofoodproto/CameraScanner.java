@@ -114,7 +114,7 @@ public class CameraScanner {
 
     private void analyzeImage(@NonNull ImageProxy imageProxy) {
         // TODO: barcode + text recognition
-        Log.i(TAG, "analyzeImage");
+        //Log.i(TAG, "analyzeImage");
         Image mediaImage = imageProxy.getImage();
         if (mediaImage != null) {
             InputImage inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.getImageInfo().getRotationDegrees());
