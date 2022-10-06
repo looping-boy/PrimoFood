@@ -3,6 +3,7 @@ package com.inventhys.gael.primofoodproto;
 import android.content.Context;
 import android.media.Image;
 import android.util.Log;
+import android.util.Size;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.Camera;
@@ -72,8 +73,8 @@ public class CameraScanner {
 
                 // Set up the capture use case to allow users to take photos
                 imageCapture = new ImageCapture.Builder()
-                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        //.setMaxResolution(new Size(1024, 1024))
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                        .setMaxResolution(new Size(1024, 1024))
                         .build();
 
                 // Choose the camera by requiring a lens facing
@@ -100,6 +101,9 @@ public class CameraScanner {
                         cameraSelector,
                         preview,
                         imageCapture, analysisUseCase);
+
+                float minRatio = camera.getCameraInfo().getZoomState().getValue().getMinZoomRatio();
+                camera.getCameraControl().setZoomRatio(minRatio);
 
                 // Connect the preview use case to the previewView
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());

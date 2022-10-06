@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.view.PreviewView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -42,9 +43,10 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
     private FragmentSecondBinding binding;
     private CameraScanner cameraScanner;
-    private List<Rect> boxes = new ArrayList<>();
+//    private List<Rect> boxes = new ArrayList<>();
     private Paint paint = new Paint();
     private Bitmap bitmapRect;
+    private Rect tmpRect = new Rect();
 
     @Override
     public View onCreateView(
@@ -76,6 +78,8 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
         } else {
             cameraScanner.startScan(this);
         }
+
+        //binding.previewView.setScaleType(PreviewView.ScaleType.FIT_CENTER);
     }
 
     @Override
@@ -108,13 +112,13 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                                 String text = visionText.getText();
                                 if (!TextUtils.isEmpty(text)) {
                                     Log.i(TAG, "TEXT: " + visionText.getText());
-                                    boxes.clear();
+//                                    boxes.clear();
                                     List<Text.TextBlock> blocks = visionText.getTextBlocks();
-                                    for (Text.TextBlock block : blocks) {
-                                        Rect rect = block.getBoundingBox();
-                                        boxes.add(rect);
-                                    }
-                                    updatePictureWithBoxes(imageProxy);
+//                                    for (Text.TextBlock block : blocks) {
+//                                        Rect rect = block.getBoundingBox();
+//                                        boxes.add(rect);
+//                                    }
+                                    updatePictureWithBoxes(blocks, imageProxy);
                                 }
                                 imageProxy.close();
                             }
@@ -137,7 +141,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
         textRecognition(imageProxy, inputImage);
     }
 
-    private void updatePictureWithBoxes(@NonNull ImageProxy imageProxy) {
+    private void updatePictureWithBoxes(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
         if ((bitmapRect == null) || (bitmapRect.isRecycled()) || (bitmapRect.getWidth() != imageProxy.getWidth()) || (bitmapRect.getHeight() != imageProxy.getHeight())) {
             bitmapRect = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
         }
@@ -148,10 +152,29 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(0xFFFFFF00);
             canvas.drawRect(1,1, bitmapRect.getWidth() - 2, bitmapRect.getHeight() - 2, paint);
-            paint.setColor(0xFFFF0000);
-            for(Rect rect : boxes) {
-                canvas.drawRect(rect, paint);
+
+            for (Text.TextBlock block : blocks) {
+                String text = block.getText();
+                if (!TextUtils.isEmpty(text)) {
+                    Rect rect = block.getBoundingBox();
+                    paint.setColor(0xFFFF0000);
+                    paint.setStyle(Paint.Style.STROKE);
+                    canvas.drawRect(rect, paint);
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(0xFFFFFFFF);
+                    paint.setTextSize(rect.bottom - rect.top);
+                    paint.getTextBounds(text, 0, text.length(), tmpRect);
+                    float x = rect.left - tmpRect.left + ((rect.right - rect.left - tmpRect.width()) / 2);
+                    float y = rect.top - tmpRect.top + ((rect.bottom - rect.top - tmpRect.height()) / 2);
+                    canvas.drawText(text, x, y, paint);
+                }
             }
+
+//            for(Rect rect : boxes) {
+//                canvas.drawRect(rect, paint);
+//            }
+
+
             binding.bitmapView.setImageBitmap(bitmapRect);
         }
     }
