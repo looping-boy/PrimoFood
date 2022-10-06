@@ -17,11 +17,12 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.common.InputImage;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutionException;
 
-public class BarCodeScanner {
+public class CameraScanner {
 
     private static final String TAG = "BarCodeScanner";
     private final @NonNull WeakReference<Context> contextRef;
@@ -29,19 +30,19 @@ public class BarCodeScanner {
     private ImageCapture imageCapture;
     private final ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private boolean started = false;
-    //private OnBarCodesFoundListener listener;
+    private CameraScannerListener listener;
 
-    public BarCodeScanner(@NonNull Context context, @NonNull PreviewView previewView) {
+    public CameraScanner(@NonNull Context context, @NonNull PreviewView previewView) {
         this.contextRef = new WeakReference<>(context);
         this.previewView = previewView;
         this.cameraProviderFuture = ProcessCameraProvider.getInstance(context);
     }
 
-    public void startScan(/*@NonNull OnBarCodesFoundListener listener*/) {
+    public void startScan(@NonNull CameraScannerListener listener) {
         Context context = contextRef.get();
         if (!started) {
             started = true;
-            //this.listener = listener;
+            this.listener = listener;
             cameraProviderFuture.addListener(captureRunnable, ContextCompat.getMainExecutor(context));
         }
     }
@@ -111,10 +112,26 @@ public class BarCodeScanner {
         }
     };
 
-    private void analyzeImage(@NonNull ImageProxy image) {
+    private void analyzeImage(@NonNull ImageProxy imageProxy) {
         // TODO: barcode + text recognition
         Log.i(TAG, "analyzeImage");
-        image.close();
+        Image mediaImage = imageProxy.getImage();
+        if (mediaImage != null) {
+            InputImage inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.getImageInfo().getRotationDegrees());
+            // Pass image to an ML Kit Vision API
+            listener.onImageCaptured(imageProxy, inputImage);
+        } else {
+            imageProxy.close();
+        }
+//        try {
+//            image.close();
+//        } catch (IllegalStateException exception) {
+//
+//        }
+    }
+
+    public interface CameraScannerListener {
+        void onImageCaptured(@NonNull ImageProxy imageProxy, @NonNull InputImage inputImage);
     }
 
 
