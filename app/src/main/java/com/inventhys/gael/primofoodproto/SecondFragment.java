@@ -154,27 +154,31 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
             canvas.drawRect(1,1, bitmapRect.getWidth() - 2, bitmapRect.getHeight() - 2, paint);
 
             for (Text.TextBlock block : blocks) {
-                String text = block.getText();
-                if (!TextUtils.isEmpty(text)) {
-                    Rect rect = block.getBoundingBox();
-                    paint.setColor(0xFFFF0000);
-                    paint.setStyle(Paint.Style.STROKE);
-                    canvas.drawRect(rect, paint);
-                    paint.setStyle(Paint.Style.FILL);
-                    paint.setColor(0xFFFFFFFF);
-                    paint.setTextSize(rect.bottom - rect.top);
-                    paint.getTextBounds(text, 0, text.length(), tmpRect);
-                    float x = rect.left - tmpRect.left + ((rect.right - rect.left - tmpRect.width()) / 2);
-                    float y = rect.top - tmpRect.top + ((rect.bottom - rect.top - tmpRect.height()) / 2);
-                    canvas.drawText(text, x, y, paint);
+                Rect rect = block.getBoundingBox();
+
+                paint.setColor(0x77000000); // Darker
+                paint.setStyle(Paint.Style.FILL);
+                canvas.drawRect(rect, paint);
+
+                paint.setColor(0xFFFF0000); // Red Border
+                paint.setStyle(Paint.Style.STROKE);
+                canvas.drawRect(rect, paint);
+
+                paint.setStyle(Paint.Style.FILL);   // White texts
+                paint.setColor(0xFFFFFFFF);
+                List<Text.Line> lines = block.getLines();
+                for(Text.Line line : lines) {
+                    String text = line.getText();
+                    if (!TextUtils.isEmpty(text)) {
+                        rect = line.getBoundingBox();
+                        paint.setTextSize(rect.bottom - rect.top);
+                        paint.getTextBounds(text, 0, text.length(), tmpRect);
+                        float x = rect.left - tmpRect.left + ((rect.right - rect.left - tmpRect.width()) / 2);
+                        float y = rect.top - tmpRect.top + ((rect.bottom - rect.top - tmpRect.height()) / 2);
+                        canvas.drawText(text, x, y, paint);
+                    }
                 }
             }
-
-//            for(Rect rect : boxes) {
-//                canvas.drawRect(rect, paint);
-//            }
-
-
             binding.bitmapView.setImageBitmap(bitmapRect);
         }
     }
