@@ -2,11 +2,7 @@ package com.inventhys.gael.primofoodproto;
 
 import android.os.Bundle;
 
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.view.View;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -20,6 +16,9 @@ import android.view.MenuItem;
 // MLKIT: https://developers.google.com/ml-kit/guides
 // Image Labelling: https://developers.google.com/ml-kit/vision/image-labeling/android
 
+// TODO: dans 1st fragment: appeler fonction pour afficher les bounding boxes & textes par dessus l'image.
+// TODO: Idem codes barres
+// TODO: bouton text = switch texts on/off
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
@@ -38,13 +37,6 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     @Override

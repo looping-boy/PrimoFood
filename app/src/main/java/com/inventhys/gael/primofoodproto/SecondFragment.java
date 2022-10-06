@@ -108,6 +108,11 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                         .addOnSuccessListener(new OnSuccessListener<Text>() {
                             @Override
                             public void onSuccess(Text visionText) {
+
+                                if (!isAdded()) {
+                                    return;
+                                }
+
                                 // Task completed successfully
                                 String text = visionText.getText();
                                 if (!TextUtils.isEmpty(text)) {
