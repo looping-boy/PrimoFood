@@ -3,6 +3,7 @@ package com.inventhys.gael.primofoodproto;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.text.TextUtils;
 
@@ -35,6 +36,8 @@ public class TextBitmap {
 
     public void updateWithBlocks(List<Text.TextBlock> blocks) {
         if (data.canvas != null) {
+            data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(0xFFFFFF00);
