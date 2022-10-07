@@ -16,6 +16,9 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -82,7 +85,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
         }
     }
 
-    private void textRecognition(@NonNull ImageProxy imageProxy, @NonNull InputImage image) {
+    private void textRecognition(List<Barcode> barcodes, @NonNull ImageProxy imageProxy, @NonNull InputImage image) {
         TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         Task<Text> result =
                 recognizer.process(image)
@@ -93,17 +96,12 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                                 if (!isAdded()) {
                                     return;
                                 }
-
+                                updateWithBarcodes(barcodes, imageProxy);
                                 // Task completed successfully
                                 String text = visionText.getText();
                                 if (!TextUtils.isEmpty(text)) {
                                     Log.i(TAG, "TEXT: " + visionText.getText());
-//                                    boxes.clear();
                                     List<Text.TextBlock> blocks = visionText.getTextBlocks();
-//                                    for (Text.TextBlock block : blocks) {
-//                                        Rect rect = block.getBoundingBox();
-//                                        boxes.add(rect);
-//                                    }
                                     updatePictureWithBoxes(blocks, imageProxy);
                                 }
                                 imageProxy.close();
@@ -116,24 +114,65 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                                         // Task failed with an exception
                                         Log.i(TAG, "Could not find texts " + e.getMessage());
                                         e.printStackTrace();
+                                        updateWithBarcodes(barcodes, imageProxy);
                                         imageProxy.close();
                                     }
                                 });
     }
 
+    private void barcodeRecognition(@NonNull ImageProxy imageProxy, @NonNull InputImage image) {
+//        BarcodeScannerOptions options =
+//                new BarcodeScannerOptions.Builder()
+//                        .setBarcodeFormats(
+//                                Barcode.FORMAT_EAN_13,
+//                                Barcode.FORMAT_EAN_8)
+//                        .build();
+        //BarcodeScanner scanner = BarcodeScanning.getClient(options);
+
+        BarcodeScanner scanner = BarcodeScanning.getClient();
+
+        Task<List<Barcode>> result = scanner.process(image)
+                .addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
+                    @Override
+                    public void onSuccess(List<Barcode> barcodes) {
+                        // Task completed successfully
+                        Log.i(TAG, "Found " + barcodes.size() + " barcodes");
+                        for(Barcode barcode: barcodes) {
+                            Log.i(TAG, "Barcode: " + barcode.getDisplayValue());
+                        }
+                        textRecognition(barcodes, imageProxy, image);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Task failed with an exception
+                        Log.i(TAG, "Could not find bar codes " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
+    }
+
 
     @Override
     public void onImageCaptured(@NonNull ImageProxy imageProxy, @NonNull InputImage inputImage) {
-        textRecognition(imageProxy, inputImage);
+        barcodeRecognition(imageProxy, inputImage);
     }
 
     private void updatePictureWithBoxes(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
-
         TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
         if (data.canvas != null) {
-            textBitmap.updateWithBlocks(blocks);
+            textBitmap.updateWithBlocks(blocks, false);
+            binding.bitmapView.setImageBitmap(data.bitmap);
+        }
+    }
+    private void updateWithBarcodes(List<Barcode> barcodes, @NonNull ImageProxy imageProxy) {
+        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
+        if (data.canvas != null) {
+            textBitmap.updateWithBarcodes(barcodes, true, data.bitmap.getWidth());
             binding.bitmapView.setImageBitmap(data.bitmap);
         }
 
     }
+
 }

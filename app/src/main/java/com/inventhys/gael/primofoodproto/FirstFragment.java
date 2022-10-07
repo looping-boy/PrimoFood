@@ -177,7 +177,7 @@ public class FirstFragment extends Fragment {
             if (displayOverlay) {
                 TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
                 if (data.canvas != null) {
-                    textBitmap.updateWithBlocks(blocks);
+                    textBitmap.updateWithBlocks(blocks, true);
                     binding.pictureOverlay.setImageBitmap(data.bitmap);
                 }
             } else {
@@ -195,7 +195,7 @@ public class FirstFragment extends Fragment {
             if (displayOverlay) {
                 TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
                 if (data.canvas != null) {
-                    textBitmap.updateWithBarcodes(barcodes);
+                    textBitmap.updateWithBarcodes(barcodes, true, data.bitmap.getWidth());
                     binding.pictureOverlay.setImageBitmap(data.bitmap);
                 }
             } else {

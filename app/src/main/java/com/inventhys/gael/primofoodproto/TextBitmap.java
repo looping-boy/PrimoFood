@@ -35,9 +35,12 @@ public class TextBitmap {
 //        data.canvas = canvas;
 //    }
 
-    public void updateWithBlocks(List<Text.TextBlock> blocks) {
+    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap) {
         if (data.canvas != null) {
-            data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+
+            if (cleanBitmap) {
+                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+            }
 
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);
@@ -73,9 +76,14 @@ public class TextBitmap {
         }
     }
 
-    public void updateWithBarcodes(List<Barcode> blocks) {
+    public void updateWithBarcodes(List<Barcode> blocks, boolean cleanBitmap, int maxWidth) {
         if (data.canvas != null) {
-            data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+
+            if (cleanBitmap) {
+                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+            }
+
+            float textSize = maxWidth * 0.07f;
 
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);
@@ -97,7 +105,7 @@ public class TextBitmap {
                 paint.setStyle(Paint.Style.FILL);
                 String text = block.getDisplayValue();
                 if (!TextUtils.isEmpty(text)) {
-                    paint.setTextSize(100);
+                    paint.setTextSize(textSize);
                     paint.getTextBounds(text, 0, text.length(), tmpRect);
                     float x = - tmpRect.left;
                     float y = yStep - tmpRect.top;
@@ -107,7 +115,7 @@ public class TextBitmap {
 
                     paint.setColor(0xFF00FF00);   // GREEN texts
                     data.canvas.drawText(text, x, y, paint);
-                    yStep += 134;
+                    yStep += textSize * 1.2f;
                 }
             }
         }
