@@ -7,6 +7,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.text.TextUtils;
 
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.text.Text;
 
 import java.util.List;
@@ -72,5 +73,44 @@ public class TextBitmap {
         }
     }
 
+    public void updateWithBarcodes(List<Barcode> blocks) {
+        if (data.canvas != null) {
+            data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(0xFFFFFF00);
+            data.canvas.drawRect(1,1, data.bitmap.getWidth() - 2, data.bitmap.getHeight() - 2, paint);
+
+            int yStep = 0;
+            for (Barcode block : blocks) {
+                Rect rect = block.getBoundingBox();
+
+                paint.setColor(0x77000000); // Darker
+                paint.setStyle(Paint.Style.FILL);
+                data.canvas.drawRect(rect, paint);
+
+                paint.setColor(0xFFFF0000); // Red Border
+                paint.setStyle(Paint.Style.STROKE);
+                data.canvas.drawRect(rect, paint);
+
+                paint.setStyle(Paint.Style.FILL);
+                String text = block.getDisplayValue();
+                if (!TextUtils.isEmpty(text)) {
+                    paint.setTextSize(100);
+                    paint.getTextBounds(text, 0, text.length(), tmpRect);
+                    float x = - tmpRect.left;
+                    float y = yStep - tmpRect.top;
+
+                    paint.setColor(0x77000000); // Darker
+                    data.canvas.drawRect(0, yStep, data.bitmap.getWidth(),yStep+134, paint);
+
+                    paint.setColor(0xFF00FF00);   // GREEN texts
+                    data.canvas.drawText(text, x, y, paint);
+                    yStep += 134;
+                }
+            }
+        }
+    }
 
 }

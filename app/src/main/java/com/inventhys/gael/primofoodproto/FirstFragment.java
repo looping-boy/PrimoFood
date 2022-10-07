@@ -186,6 +186,24 @@ public class FirstFragment extends Fragment {
         }
     }
 
+    private void updateWithBarcodes(List<Barcode> barcodes) {
+        displayOverlay = !displayOverlay;
+        int pictureResId = pictures[pictureIndex];
+        Bitmap bitmap = loadBitmap(pictureResId);
+        if (bitmap != null) {
+            binding.picturePreview.setImageBitmap(bitmap);
+            if (displayOverlay) {
+                TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
+                if (data.canvas != null) {
+                    textBitmap.updateWithBarcodes(barcodes);
+                    binding.pictureOverlay.setImageBitmap(data.bitmap);
+                }
+            } else {
+                binding.pictureOverlay.setImageBitmap(null);
+            }
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -320,6 +338,7 @@ public class FirstFragment extends Fragment {
                         for(Barcode barcode: barcodes) {
                             Log.i(TAG, "Barcode: " + barcode.getDisplayValue());
                         }
+                        updateWithBarcodes(barcodes);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
