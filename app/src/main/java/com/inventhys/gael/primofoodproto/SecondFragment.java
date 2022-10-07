@@ -1,11 +1,6 @@
 package com.inventhys.gael.primofoodproto;
 
 import android.Manifest;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,7 +10,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageProxy;
-import androidx.camera.view.PreviewView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -29,7 +23,6 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentSecondBinding;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import fr.arnaudguyon.perm.Perm;
@@ -43,10 +36,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
     private FragmentSecondBinding binding;
     private CameraScanner cameraScanner;
-//    private List<Rect> boxes = new ArrayList<>();
-    private Paint paint = new Paint();
-    private Bitmap bitmapRect;
-    private Rect tmpRect = new Rect();
+    private final TextBitmap textBitmap = new TextBitmap();
 
     @Override
     public View onCreateView(
@@ -56,7 +46,6 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
         binding = FragmentSecondBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -147,44 +136,12 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
     }
 
     private void updatePictureWithBoxes(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
-        if ((bitmapRect == null) || (bitmapRect.isRecycled()) || (bitmapRect.getWidth() != imageProxy.getWidth()) || (bitmapRect.getHeight() != imageProxy.getHeight())) {
-            bitmapRect = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
+
+        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
+        if (data.canvas != null) {
+            textBitmap.updateWithBlocks(blocks, imageProxy);
+            binding.bitmapView.setImageBitmap(data.bitmap);
         }
-        if (bitmapRect != null) {
-            Canvas canvas = new Canvas(bitmapRect);
-            canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
-            paint.setStrokeWidth(3);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(0xFFFFFF00);
-            canvas.drawRect(1,1, bitmapRect.getWidth() - 2, bitmapRect.getHeight() - 2, paint);
 
-            for (Text.TextBlock block : blocks) {
-                Rect rect = block.getBoundingBox();
-
-                paint.setColor(0x77000000); // Darker
-                paint.setStyle(Paint.Style.FILL);
-                canvas.drawRect(rect, paint);
-
-                paint.setColor(0xFFFF0000); // Red Border
-                paint.setStyle(Paint.Style.STROKE);
-                canvas.drawRect(rect, paint);
-
-                paint.setStyle(Paint.Style.FILL);   // White texts
-                paint.setColor(0xFFFFFFFF);
-                List<Text.Line> lines = block.getLines();
-                for(Text.Line line : lines) {
-                    String text = line.getText();
-                    if (!TextUtils.isEmpty(text)) {
-                        rect = line.getBoundingBox();
-                        paint.setTextSize(rect.bottom - rect.top);
-                        paint.getTextBounds(text, 0, text.length(), tmpRect);
-                        float x = rect.left - tmpRect.left + ((rect.right - rect.left - tmpRect.width()) / 2);
-                        float y = rect.top - tmpRect.top + ((rect.bottom - rect.top - tmpRect.height()) / 2);
-                        canvas.drawText(text, x, y, paint);
-                    }
-                }
-            }
-            binding.bitmapView.setImageBitmap(bitmapRect);
-        }
     }
 }
