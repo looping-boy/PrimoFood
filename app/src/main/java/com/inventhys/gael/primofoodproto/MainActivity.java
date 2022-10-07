@@ -16,9 +16,7 @@ import android.view.MenuItem;
 // MLKIT: https://developers.google.com/ml-kit/guides
 // Image Labelling: https://developers.google.com/ml-kit/vision/image-labeling/android
 
-// TODO: dans 1st fragment: appeler fonction pour afficher les bounding boxes & textes par dessus l'image.
-// TODO: Idem codes barres
-// TODO: bouton text = switch texts on/off
+// TODO: appeler fonction pour afficher codes barres
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;

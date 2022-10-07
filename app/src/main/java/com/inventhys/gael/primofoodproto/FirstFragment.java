@@ -2,9 +2,6 @@ package com.inventhys.gael.primofoodproto;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,7 +17,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
@@ -38,7 +34,6 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FirstFragment extends Fragment {
@@ -66,8 +61,8 @@ public class FirstFragment extends Fragment {
             R.drawable.lidl_4_20220831
     };
 
-    private List<Rect> boxes = new ArrayList<>();
-    private Paint paint = new Paint();
+    private final TextBitmap textBitmap = new TextBitmap();
+    private boolean displayOverlay = false;
 
     @Override
     public View onCreateView(
@@ -169,23 +164,24 @@ public class FirstFragment extends Fragment {
     private void updatePicture() {
         int pictureResId = pictures[pictureIndex];
         binding.picturePreview.setImageResource(pictureResId);
+        binding.pictureOverlay.setImageBitmap(null);
+        displayOverlay = false;
     }
 
-    private void updatePictureWithBoxes() {
+    private void updatePictureWithBoxes(List<Text.TextBlock> blocks) {
+        displayOverlay = !displayOverlay;
         int pictureResId = pictures[pictureIndex];
         Bitmap bitmap = loadBitmap(pictureResId);
         if (bitmap != null) {
-            Bitmap target = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            if (target != null) {
-                Canvas canvas = new Canvas(target);
-                canvas.drawBitmap(bitmap, 0, 0, null);
-                paint.setColor(0xFFFF0000);
-                paint.setStrokeWidth(3);
-                paint.setStyle(Paint.Style.STROKE);
-                for(Rect rect : boxes) {
-                    canvas.drawRect(rect, paint);
+            binding.picturePreview.setImageBitmap(bitmap);
+            if (displayOverlay) {
+                TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
+                if (data.canvas != null) {
+                    textBitmap.updateWithBlocks(blocks);
+                    binding.pictureOverlay.setImageBitmap(data.bitmap);
                 }
-                binding.picturePreview.setImageBitmap(target);
+            } else {
+                binding.pictureOverlay.setImageBitmap(null);
             }
         }
     }
@@ -286,13 +282,8 @@ public class FirstFragment extends Fragment {
                             public void onSuccess(Text visionText) {
                                 // Task completed successfully
                                 Log.i(TAG, "TEXT: " + visionText.getText());
-                                boxes.clear();
                                 List<Text.TextBlock> blocks = visionText.getTextBlocks();
-                                for (Text.TextBlock block : blocks) {
-                                    Rect rect = block.getBoundingBox();
-                                    boxes.add(rect);
-                                }
-                                updatePictureWithBoxes();
+                                updatePictureWithBoxes(blocks);
                             }
                         })
                         .addOnFailureListener(

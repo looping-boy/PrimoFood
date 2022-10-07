@@ -6,9 +6,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-import androidx.camera.core.ImageProxy;
-
 import com.google.mlkit.vision.text.Text;
 
 import java.util.List;
@@ -31,7 +28,12 @@ public class TextBitmap {
         return data;
     }
 
-    public void updateWithBlocks(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
+//    public void setData(Bitmap bitmap, Canvas canvas) {
+//        data.bitmap = bitmap;
+//        data.canvas = canvas;
+//    }
+
+    public void updateWithBlocks(List<Text.TextBlock> blocks) {
         if (data.canvas != null) {
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);

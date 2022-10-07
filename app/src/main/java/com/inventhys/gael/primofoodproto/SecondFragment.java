@@ -139,7 +139,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
         TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
         if (data.canvas != null) {
-            textBitmap.updateWithBlocks(blocks, imageProxy);
+            textBitmap.updateWithBlocks(blocks);
             binding.bitmapView.setImageBitmap(data.bitmap);
         }
 
