@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -52,13 +53,13 @@ public class FirstFragment extends Fragment {
             R.drawable.casino_20221004_121529,
             R.drawable.casino_20221004_121401,
             R.drawable.casino_20221004_121345,
-            R.drawable.carrefour_middle_3_20220831,
-            R.drawable.carrefour_middle_shelf_1,
-            R.drawable.carrefour_middle_shelf_3,
-            R.drawable.carrefour_top_1_20220831,
-            R.drawable.carrefour_top_shelf_1,
-            R.drawable.lidl_1_20220831,
-            R.drawable.lidl_4_20220831
+//            R.drawable.carrefour_middle_3_20220831,
+//            R.drawable.carrefour_middle_shelf_1,
+//            R.drawable.carrefour_middle_shelf_3,
+//            R.drawable.carrefour_top_1_20220831,
+//            R.drawable.carrefour_top_shelf_1,
+//            R.drawable.lidl_1_20220831,
+//            R.drawable.lidl_4_20220831
     };
 
     private final TextBitmap textBitmap = new TextBitmap();
@@ -234,9 +235,12 @@ public class FirstFragment extends Fragment {
                     public void onSuccess(List<ImageLabel> labels) {
                         // Task completed successfully
                         Log.i(TAG, labels.size() + " labels found in the picture");
+                        String text = "LABELS:\n";
                         for(ImageLabel imageLabel : labels) {
-                            Log.i(TAG, "  " + imageLabel.getText());
+                            text += imageLabel.getText() + "\n";
                         }
+                        Log.i(TAG, text);
+                        binding.result.setText(text);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
