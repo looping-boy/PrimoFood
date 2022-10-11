@@ -7,12 +7,18 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.text.TextUtils;
 
+import androidx.camera.core.ImageInfo;
+import androidx.camera.core.ImageProxy;
+
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.text.Text;
 
 import java.util.List;
 
 public class TextBitmap {
+
+    private final float FRAME_WIDTH_PERCENT = 0.5f;
+    private final float FRAME_RATIO = 4/3f;
 
     public class Data {
         Bitmap bitmap;
@@ -21,6 +27,14 @@ public class TextBitmap {
     private Data data = new Data();
     private Paint paint = new Paint();
     private Rect tmpRect = new Rect();
+
+    public Data getOrCreate(ImageProxy imageProxy) {
+        ImageInfo imageInfo = imageProxy.getImageInfo();
+        boolean rotated = ((imageInfo.getRotationDegrees() != 0) && (imageInfo.getRotationDegrees() != 180));
+        int width = rotated ? imageProxy.getHeight() : imageProxy.getWidth();
+        int height = rotated ? imageProxy.getWidth() : imageProxy.getHeight();
+        return getOrCreate(width, height);
+    }
 
     public Data getOrCreate(int width, int height) {
         if ((data.bitmap == null) || (data.bitmap.isRecycled()) || (data.bitmap.getWidth() != width) || (data.bitmap.getHeight() != height)) {
@@ -35,7 +49,7 @@ public class TextBitmap {
 //        data.canvas = canvas;
 //    }
 
-    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap) {
+    public void updateWithFrame(boolean cleanBitmap) {
         if (data.canvas != null) {
 
             if (cleanBitmap) {
@@ -44,11 +58,43 @@ public class TextBitmap {
 
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(0xFFFF00FF);
+            float w = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
+            float h = w / FRAME_RATIO;
+            float x = (data.bitmap.getWidth() - w) / 2;
+            float y = (data.bitmap.getHeight() - h) / 2;
+            data.canvas.drawRect(x,y, x + w, y + h, paint);
+
+        }
+    }
+
+    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap) {
+        if (data.canvas != null) {
+
+            if (cleanBitmap) {
+                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+            }
+
+            float boxW = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
+            float boxH = boxW / FRAME_RATIO;
+            float boxX = (data.bitmap.getWidth() - boxW) / 2;
+            float boxY = (data.bitmap.getHeight() - boxH) / 2;
+
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
             paint.setColor(0xFFFFFF00);
             data.canvas.drawRect(1,1, data.bitmap.getWidth() - 2, data.bitmap.getHeight() - 2, paint);
 
             for (Text.TextBlock block : blocks) {
                 Rect rect = block.getBoundingBox();
+
+                // ignore texts out of the frame box
+                float middleRectX = rect.centerX();
+                float middleRectY = rect.centerY();
+                if ((middleRectX < boxX) || (middleRectX > boxX + boxW) ||
+                        (middleRectY < boxY) || (middleRectY > boxY + boxH)) {
+                    continue;
+                }
 
                 paint.setColor(0x77000000); // Darker
                 paint.setStyle(Paint.Style.FILL);

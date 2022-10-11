@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageProxy;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -96,6 +95,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                                 if (!isAdded()) {
                                     return;
                                 }
+                                drawFrame(imageProxy);
                                 updateWithBarcodes(barcodes, imageProxy);
                                 // Task completed successfully
                                 String text = visionText.getText();
@@ -114,6 +114,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
                                         // Task failed with an exception
                                         Log.i(TAG, "Could not find texts " + e.getMessage());
                                         e.printStackTrace();
+                                        drawFrame(imageProxy);
                                         updateWithBarcodes(barcodes, imageProxy);
                                         imageProxy.close();
                                     }
@@ -159,18 +160,26 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
         barcodeRecognition(imageProxy, inputImage);
     }
 
+    private void drawFrame(@NonNull ImageProxy imageProxy) {
+        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy);
+        if (data.canvas != null) {
+            textBitmap.updateWithFrame(true);
+            //binding.bitmapView.setImageBitmap(data.bitmap);
+        }
+    }
+
     private void updatePictureWithBoxes(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
-        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
+        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy);
         if (data.canvas != null) {
             textBitmap.updateWithBlocks(blocks, false);
             binding.bitmapView.setImageBitmap(data.bitmap);
         }
     }
     private void updateWithBarcodes(List<Barcode> barcodes, @NonNull ImageProxy imageProxy) {
-        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy.getWidth(), imageProxy.getHeight());
+        TextBitmap.Data data = textBitmap.getOrCreate(imageProxy);
         if (data.canvas != null) {
-            textBitmap.updateWithBarcodes(barcodes, true, data.bitmap.getWidth());
-            binding.bitmapView.setImageBitmap(data.bitmap);
+            textBitmap.updateWithBarcodes(barcodes, false, data.bitmap.getWidth());
+            //binding.bitmapView.setImageBitmap(data.bitmap);
         }
 
     }
