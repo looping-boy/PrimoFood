@@ -5,20 +5,35 @@ plugins {
 android {
     compileSdk 32
 
+    signingConfigs {
+        storeSigningConfig {
+            keyAlias 'gael'
+            keyPassword 'pRiM0f0oD2022!'
+            storeFile file('primofood_certificate.jks')
+            storePassword 'pRiM0f0oD2022!'
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
     defaultConfig {
         applicationId "com.inventhys.gael.primofoodproto"
         minSdk 28
         targetSdk 32
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0-1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    // pw: pRiM0f0oD2022!
+    // alias: gael
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.storeSigningConfig
         }
     }
     compileOptions {
