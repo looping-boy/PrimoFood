@@ -68,7 +68,7 @@ public class TextBitmap {
         }
     }
 
-    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap) {
+    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap, boolean skipIfOutOfBounds) {
         if (data.canvas != null) {
 
             if (cleanBitmap) {
@@ -87,13 +87,18 @@ public class TextBitmap {
 
             for (Text.TextBlock block : blocks) {
                 Rect rect = block.getBoundingBox();
+                if (rect == null) {
+                    continue;
+                }
 
                 // ignore texts out of the frame box
-                float middleRectX = rect.centerX();
-                float middleRectY = rect.centerY();
-                if ((middleRectX < boxX) || (middleRectX > boxX + boxW) ||
-                        (middleRectY < boxY) || (middleRectY > boxY + boxH)) {
-                    continue;
+                if (skipIfOutOfBounds) {
+                    float middleRectX = rect.centerX();
+                    float middleRectY = rect.centerY();
+                    if ((middleRectX < boxX) || (middleRectX > boxX + boxW) ||
+                            (middleRectY < boxY) || (middleRectY > boxY + boxH)) {
+                        continue;
+                    }
                 }
 
                 paint.setColor(0x77000000); // Darker
@@ -122,12 +127,17 @@ public class TextBitmap {
         }
     }
 
-    public void updateWithBarcodes(List<Barcode> blocks, boolean cleanBitmap, int maxWidth) {
+    public void updateWithBarcodes(List<Barcode> blocks, boolean cleanBitmap, int maxWidth, boolean skipIfOutOfBounds) {
         if (data.canvas != null) {
 
             if (cleanBitmap) {
                 data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
             }
+
+            float boxW = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
+            float boxH = boxW / FRAME_RATIO;
+            float boxX = (data.bitmap.getWidth() - boxW) / 2;
+            float boxY = (data.bitmap.getHeight() - boxH) / 2;
 
             float textSize = maxWidth * 0.07f;
 
@@ -139,6 +149,19 @@ public class TextBitmap {
             int yStep = 0;
             for (Barcode block : blocks) {
                 Rect rect = block.getBoundingBox();
+                if (rect == null) {
+                    continue;
+                }
+
+                // ignore barcode out of the frame box
+                if (skipIfOutOfBounds) {
+                    float middleRectX = rect.centerX();
+                    float middleRectY = rect.centerY();
+                    if ((middleRectX < boxX) || (middleRectX > boxX + boxW) ||
+                            (middleRectY < boxY) || (middleRectY > boxY + boxH)) {
+                        continue;
+                    }
+                }
 
                 paint.setColor(0x77000000); // Darker
                 paint.setStyle(Paint.Style.FILL);
