@@ -115,6 +115,12 @@ public class TextBitmap {
                 for(Text.Line line : lines) {
                     String text = line.getText();
                     if (!TextUtils.isEmpty(text)) {
+                        float confidence = line.getConfidence();
+                        if (confidence > 0.65f) {
+                            paint.setColor(0xFF00FF00);
+                        } else {
+                            paint.setColor(0xFFFF0000);
+                        }
                         rect = line.getBoundingBox();
                         paint.setTextSize(rect.bottom - rect.top);
                         paint.getTextBounds(text, 0, text.length(), tmpRect);

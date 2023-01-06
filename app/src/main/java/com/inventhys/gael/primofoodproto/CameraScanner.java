@@ -69,12 +69,16 @@ public class CameraScanner {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
                 // Set up the view finder use case to display camera preview
-                Preview preview = new Preview.Builder().build();
+                Preview preview = new Preview.Builder()
+                        .setTargetResolution(new Size(2048, 2048))
+                        //.setMaxResolution(new Size(2048, 2048))
+                        .build();
 
                 // Set up the capture use case to allow users to take photos
                 imageCapture = new ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                        .setMaxResolution(new Size(1024, 1024))
+                        .setTargetResolution(new Size(2048, 2048))
+                        //.setMaxResolution(new Size(2048, 2048))
                         .build();
 
                 // Choose the camera by requiring a lens facing
@@ -84,7 +88,9 @@ public class CameraScanner {
 
                 // Use Case Image Analysis
                 ImageAnalysis.Builder builder = new ImageAnalysis.Builder();
-                ImageAnalysis analysisUseCase = builder.build();
+                ImageAnalysis analysisUseCase = builder
+                        .setTargetResolution(new Size(2048, 2048))
+                        .build();
 
                 ImageAnalysis.Analyzer imageAnalyzer = new ImageAnalysis.Analyzer() {
                     @Override
