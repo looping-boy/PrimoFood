@@ -1,8 +1,14 @@
 package com.inventhys.gael.primofoodproto;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -35,17 +42,17 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
 
+import java.io.IOException;
 import java.util.List;
 
 public class FirstFragment extends Fragment {
 
     private static final String TAG = "LABELLING";
     private FragmentFirstBinding binding;
-
+    public static final int RESULT_OK = -1;
     int pictureIndex = 0;
     private int[] pictures = new int[]{
-            R.drawable.carann1,
-            R.drawable.carann2,
+            R.drawable.image,
             R.drawable.carann3,
             R.drawable.carrefour199,
             R.drawable.tni,
@@ -82,30 +89,26 @@ public class FirstFragment extends Fragment {
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+                if (getActivity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, 3);
+                } else {
+                    requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
+                }
             }
         });
+
+
+
+//                .setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                NavHostFragment.findNavController(FirstFragment.this)
+//                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+//            }
+//        });
 
         updatePicture();
-
-        binding.labellize.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pictureResId = pictures[pictureIndex];
-                Bitmap bitmap = loadBitmap(pictureResId);
-                labellizePicture(bitmap);
-            }
-        });
-
-        binding.recognize.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pictureResId = pictures[pictureIndex];
-                Bitmap bitmap = loadBitmap(pictureResId);
-                recognizePicture(bitmap);
-            }
-        });
 
         binding.textrecognition.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,41 +128,6 @@ public class FirstFragment extends Fragment {
             }
         });
 
-        binding.previouspicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pictureIndex == 0) {
-                    pictureIndex = pictures.length - 1;
-                } else {
-                    --pictureIndex;
-                }
-                updatePicture();
-            }
-        });
-
-        binding.nextpicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pictureIndex == pictures.length - 1) {
-                    pictureIndex = 0;
-                } else {
-                    ++pictureIndex;
-                }
-                updatePicture();
-            }
-        });
-
-    }
-
-    private int getAngle() {
-        String text = binding.angle.getText().toString();
-        try {
-            int value = Integer.parseInt(text);
-            return value;
-        } catch (NumberFormatException exception) {
-            exception.printStackTrace();
-        }
-        return 0;
     }
 
     private void updatePicture() {
@@ -173,12 +141,15 @@ public class FirstFragment extends Fragment {
         displayOverlay = !displayOverlay;
         int pictureResId = pictures[pictureIndex];
         Bitmap bitmap = loadBitmap(pictureResId);
+        bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
+
         if (bitmap != null) {
-            binding.picturePreview.setImageBitmap(bitmap);
+//            binding.picturePreview.setImageBitmap(bitmap);
             if (displayOverlay) {
                 TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
                 if (data.canvas != null) {
-                    textBitmap.updateWithBlocks(blocks, true, false);
+                    textBitmap.updatePictureWithBlockIA(this.getContext(), bitmap);
+//                    textBitmap.updateWithBlocks(blocks, true, false);
                     binding.pictureOverlay.setImageBitmap(data.bitmap);
                 }
             } else {
@@ -215,87 +186,8 @@ public class FirstFragment extends Fragment {
         return BitmapFactory.decodeResource(getResources(), resId);
     }
 
-    private void labellizePicture(@NonNull Bitmap bitmap) {
-        int rotationDegree = getAngle();
-        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
-
-        // To use default options:
-        ImageLabeler labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS);
-
-        // Or, to set the minimum confidence required:
-        // ImageLabelerOptions options =
-        //     new ImageLabelerOptions.Builder()
-        //         .setConfidenceThreshold(0.7f)
-        //         .build();
-        // ImageLabeler labeler = ImageLabeling.getClient(options);
-
-        labeler.process(image)
-                .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
-                    @Override
-                    public void onSuccess(List<ImageLabel> labels) {
-                        // Task completed successfully
-                        Log.i(TAG, labels.size() + " labels found in the picture");
-                        String text = "LABELS:\n";
-                        for(ImageLabel imageLabel : labels) {
-                            text += imageLabel.getText() + "\n";
-                        }
-                        Log.i(TAG, text);
-                        binding.result.setText(text);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Task failed with an exception
-                        // ...
-                        Log.i(TAG, "Could not find labels " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                });
-    }
-
-    private void recognizePicture(@NonNull Bitmap bitmap) {
-        int rotationDegree = getAngle();
-        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
-
-        ObjectDetectorOptions options =
-                new ObjectDetectorOptions.Builder()
-                        .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
-                        .enableMultipleObjects()
-                        .enableClassification()  // Optional
-                        .build();
-
-        ObjectDetector objectDetector = ObjectDetection.getClient(options);
-
-        objectDetector.process(image)
-                .addOnSuccessListener(
-                        new OnSuccessListener<List<DetectedObject>>() {
-                            @Override
-                            public void onSuccess(List<DetectedObject> detectedObjects) {
-                                // Task completed successfully
-                                Log.i(TAG, detectedObjects.size() + " objects found in the picture");
-                                for(DetectedObject detectedObject : detectedObjects) {
-                                    Log.i(TAG, "  " + detectedObject.getLabels().size() + " labels");
-                                    for(DetectedObject.Label label : detectedObject.getLabels()) {
-                                        Log.i(TAG, "  " + label.getText());
-                                    }
-                                }
-                            }
-                        })
-                .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                // Task failed with an exception
-                                Log.i(TAG, "Could not find labels " + e.getMessage());
-                                e.printStackTrace();
-                            }
-                        });
-    }
-
     private void textRecognition(@NonNull Bitmap bitmap) {
-        int rotationDegree = getAngle();
-        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+        InputImage image = InputImage.fromBitmap(bitmap, 0);
         TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         Task<Text> result =
                 recognizer.process(image)
@@ -320,16 +212,7 @@ public class FirstFragment extends Fragment {
     }
 
     private void barCode(@NonNull Bitmap bitmap) {
-        int rotationDegree = getAngle();
-        InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
-
-//        BarcodeScannerOptions options =
-//                new BarcodeScannerOptions.Builder()
-//                        .setBarcodeFormats(
-//                                Barcode.FORMAT_EAN_13,
-//                                Barcode.FORMAT_EAN_8)
-//                        .build();
-        //BarcodeScanner scanner = BarcodeScanning.getClient(options);
+        InputImage image = InputImage.fromBitmap(bitmap, 0);
 
         BarcodeScanner scanner = BarcodeScanning.getClient();
 
@@ -353,5 +236,37 @@ public class FirstFragment extends Fragment {
                         e.printStackTrace();
                     }
                 });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 3) {
+                Bitmap image = (Bitmap) data.getExtras().get("data");
+                int dimension = Math.min(image.getWidth(), image.getHeight());
+                image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
+//                imageView.setImageBitmap(image);
+
+                image = Bitmap.createScaledBitmap(image, 320, 320, false);
+                binding.picturePreview.setImageBitmap(image);
+                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
+//                classifyImage(image);
+            } else {
+                Uri dat = data.getData();
+                Bitmap image = null;
+                try {
+                    image = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), dat);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                image = Bitmap.createScaledBitmap(image, 320, 320, false);
+                binding.picturePreview.setImageBitmap(image);
+                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
+
+//                classifyImage(image);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
