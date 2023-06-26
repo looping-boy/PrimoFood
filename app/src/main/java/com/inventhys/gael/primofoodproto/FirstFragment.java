@@ -113,9 +113,7 @@ public class FirstFragment extends Fragment {
         binding.textrecognition.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int pictureResId = pictures[pictureIndex];
-                Bitmap bitmap = loadBitmap(pictureResId);
-                textRecognition(bitmap);
+                updatePictureWithBoxes();
             }
         });
 
@@ -137,14 +135,14 @@ public class FirstFragment extends Fragment {
         displayOverlay = false;
     }
 
-    private void updatePictureWithBoxes(List<Text.TextBlock> blocks) {
+    private void updatePictureWithBoxes() {
         displayOverlay = !displayOverlay;
         int pictureResId = pictures[pictureIndex];
         Bitmap bitmap = loadBitmap(pictureResId);
         bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
 
         if (bitmap != null) {
-//            binding.picturePreview.setImageBitmap(bitmap);
+            binding.picturePreview.setImageBitmap(bitmap);
             if (displayOverlay) {
                 TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
                 if (data.canvas != null) {
@@ -184,31 +182,6 @@ public class FirstFragment extends Fragment {
 
     private Bitmap loadBitmap(@DrawableRes int resId) {
         return BitmapFactory.decodeResource(getResources(), resId);
-    }
-
-    private void textRecognition(@NonNull Bitmap bitmap) {
-        InputImage image = InputImage.fromBitmap(bitmap, 0);
-        TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
-        Task<Text> result =
-                recognizer.process(image)
-                        .addOnSuccessListener(new OnSuccessListener<Text>() {
-                            @Override
-                            public void onSuccess(Text visionText) {
-                                // Task completed successfully
-                                Log.i(TAG, "TEXT: " + visionText.getText());
-                                List<Text.TextBlock> blocks = visionText.getTextBlocks();
-                                updatePictureWithBoxes(blocks);
-                            }
-                        })
-                        .addOnFailureListener(
-                                new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        // Task failed with an exception
-                                        Log.i(TAG, "Could not find texts " + e.getMessage());
-                                        e.printStackTrace();
-                                    }
-                                });
     }
 
     private void barCode(@NonNull Bitmap bitmap) {
