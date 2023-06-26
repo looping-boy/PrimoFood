@@ -171,7 +171,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
     private void updatePictureWithBoxes(List<Text.TextBlock> blocks, @NonNull ImageProxy imageProxy) {
         TextBitmap.Data data = textBitmap.getOrCreate(imageProxy);
         if (data.canvas != null) {
-            textBitmap.updateWithBlocks(blocks, false, true);
+//            textBitmap.updateWithBlocks(blocks, false, true);
             binding.bitmapView.setImageBitmap(data.bitmap);
         }
     }

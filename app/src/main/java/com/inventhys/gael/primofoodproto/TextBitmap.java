@@ -247,8 +247,12 @@ public class TextBitmap {
         float boxW = FRAME_WIDTH_PERCENT * bitmap.getWidth();
         float boxH = boxW / FRAME_RATIO;
 
+
+
         data.bitmap = bitmap;
         data.canvas = (data.bitmap == null) ? null : new Canvas(data.bitmap);
+
+//        data.canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         float boxX = (data.bitmap.getWidth() - boxW) / 2;
         float boxY = (data.bitmap.getHeight() - boxH) / 2;
@@ -271,74 +275,6 @@ public class TextBitmap {
             data.canvas.drawRect(rect, paint);
 
 
-        }
-    }
-
-    public void updateWithBlocks(List<Text.TextBlock> blocks, boolean cleanBitmap, boolean skipIfOutOfBounds) {
-
-
-        if (data.canvas != null) {
-
-            if (cleanBitmap) {
-                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
-            }
-
-            float boxW = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
-            float boxH = boxW / FRAME_RATIO;
-            float boxX = (data.bitmap.getWidth() - boxW) / 2;
-            float boxY = (data.bitmap.getHeight() - boxH) / 2;
-
-            paint.setStrokeWidth(3);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(0xFFFFFF00);
-            data.canvas.drawRect(1, 1, data.bitmap.getWidth() - 2, data.bitmap.getHeight() - 2, paint);
-
-            for (Text.TextBlock block : blocks) {
-                Rect rect = block.getBoundingBox();
-                if (rect == null) {
-                    continue;
-                }
-
-                // ignore texts out of the frame box
-                if (skipIfOutOfBounds) {
-                    float middleRectX = rect.centerX();
-                    float middleRectY = rect.centerY();
-                    if ((middleRectX < boxX) || (middleRectX > boxX + boxW) ||
-                            (middleRectY < boxY) || (middleRectY > boxY + boxH)) {
-                        continue;
-                    }
-                }
-
-                paint.setColor(0x77000000); // Darker
-                paint.setStyle(Paint.Style.FILL);
-                data.canvas.drawRect(rect, paint);
-
-
-                paint.setColor(0xFFFF0000); // Red Border
-                paint.setStyle(Paint.Style.STROKE);
-                data.canvas.drawRect(rect, paint);
-
-                paint.setStyle(Paint.Style.FILL);   // White texts
-                paint.setColor(0xFFFFFFFF);
-                List<Text.Line> lines = block.getLines();
-                for (Text.Line line : lines) {
-                    String text = line.getText();
-                    if (!TextUtils.isEmpty(text)) {
-                        float confidence = line.getConfidence();
-                        if (confidence > 0.65f) {
-                            paint.setColor(0xFF00FF00);
-                        } else {
-                            paint.setColor(0xFFFF0000);
-                        }
-                        rect = line.getBoundingBox();
-                        paint.setTextSize(rect.bottom - rect.top);
-                        paint.getTextBounds(text, 0, text.length(), tmpRect);
-                        float x = rect.left - tmpRect.left + ((rect.right - rect.left - tmpRect.width()) / 2f);
-                        float y = rect.top - tmpRect.top + ((rect.bottom - rect.top - tmpRect.height()) / 2f);
-                        data.canvas.drawText(text, x, y, paint);
-                    }
-                }
-            }
         }
     }
 

@@ -52,7 +52,7 @@ public class FirstFragment extends Fragment {
     public static final int RESULT_OK = -1;
     int pictureIndex = 0;
     private int[] pictures = new int[]{
-            R.drawable.image,
+            R.drawable.triangle,
             R.drawable.carann3,
             R.drawable.carrefour199,
             R.drawable.tni,
@@ -60,13 +60,6 @@ public class FirstFragment extends Fragment {
             R.drawable.casino_20221004_121529,
             R.drawable.casino_20221004_121401,
             R.drawable.casino_20221004_121345,
-//            R.drawable.carrefour_middle_3_20220831,
-//            R.drawable.carrefour_middle_shelf_1,
-//            R.drawable.carrefour_middle_shelf_3,
-//            R.drawable.carrefour_top_1_20220831,
-//            R.drawable.carrefour_top_shelf_1,
-//            R.drawable.lidl_1_20220831,
-//            R.drawable.lidl_4_20220831
     };
 
     private final TextBitmap textBitmap = new TextBitmap();
@@ -98,22 +91,15 @@ public class FirstFragment extends Fragment {
             }
         });
 
-
-
-//                .setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                NavHostFragment.findNavController(FirstFragment.this)
-//                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-//            }
-//        });
-
         updatePicture();
 
         binding.textrecognition.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updatePictureWithBoxes();
+                displayOverlay = !displayOverlay;
+                int pictureResId = pictures[pictureIndex];
+                Bitmap bitmap = loadBitmap(pictureResId);
+                updatePictureWithBoxes(bitmap);
             }
         });
 
@@ -135,24 +121,22 @@ public class FirstFragment extends Fragment {
         displayOverlay = false;
     }
 
-    private void updatePictureWithBoxes() {
-        displayOverlay = !displayOverlay;
-        int pictureResId = pictures[pictureIndex];
-        Bitmap bitmap = loadBitmap(pictureResId);
+    private void updatePictureWithBoxes(Bitmap bitmap) {
+
+//        bitmap = Bitmap.createBitmap(bitmap, 0, 0, 640, 640);
         bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
 
         if (bitmap != null) {
             binding.picturePreview.setImageBitmap(bitmap);
-            if (displayOverlay) {
+//            if (displayOverlay) {
                 TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
                 if (data.canvas != null) {
                     textBitmap.updatePictureWithBlockIA(this.getContext(), bitmap);
-//                    textBitmap.updateWithBlocks(blocks, true, false);
                     binding.pictureOverlay.setImageBitmap(data.bitmap);
                 }
-            } else {
-                binding.pictureOverlay.setImageBitmap(null);
-            }
+//            } else {
+//                binding.pictureOverlay.setImageBitmap(null);
+//            }
         }
     }
 
@@ -218,12 +202,15 @@ public class FirstFragment extends Fragment {
                 Bitmap image = (Bitmap) data.getExtras().get("data");
                 int dimension = Math.min(image.getWidth(), image.getHeight());
                 image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-//                imageView.setImageBitmap(image);
 
                 image = Bitmap.createScaledBitmap(image, 320, 320, false);
-                binding.picturePreview.setImageBitmap(image);
-                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
-//                classifyImage(image);
+
+                updatePictureWithBoxes(image);
+
+//                TextBitmap.Data dataPhoto = textBitmap.getOrCreate(image.getWidth(), image.getHeight());
+//                binding.picturePreview.setImageBitmap(image);
+//                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
+//                binding.pictureOverlay.setImageBitmap(dataPhoto.bitmap);
             } else {
                 Uri dat = data.getData();
                 Bitmap image = null;
@@ -234,10 +221,13 @@ public class FirstFragment extends Fragment {
                 }
 
                 image = Bitmap.createScaledBitmap(image, 320, 320, false);
-                binding.picturePreview.setImageBitmap(image);
-                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
 
-//                classifyImage(image);
+                updatePictureWithBoxes(image);
+
+//                TextBitmap.Data dataGallery = textBitmap.getOrCreate(image.getWidth(), image.getHeight());
+//                binding.picturePreview.setImageBitmap(image);
+//                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
+//                binding.pictureOverlay.setImageBitmap(dataGallery.bitmap);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
