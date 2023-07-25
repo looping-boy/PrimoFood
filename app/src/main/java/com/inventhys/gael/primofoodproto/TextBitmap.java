@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.text.TextUtils;
 
@@ -35,14 +36,14 @@ public class TextBitmap {
     private final float FRAME_RATIO = 4 / 3f;
     private final short IMAGE_SIZE = 320;
 
-    ArrayList<RectInformation> boxes = new ArrayList<>();
+    ArrayList<RectInformation> boxesStored = new ArrayList<>();
 
     public class Data {
         Bitmap bitmap;
         Canvas canvas;
     }
 
-    public class RectInformation {
+    public static class RectInformation {
         float x1, y1, x2, y2;
         int number;
         float maxProb;
@@ -55,53 +56,21 @@ public class TextBitmap {
             this.number = number;
             this.maxProb = maxProb;
         }
-
-        public float getX1() {
-            return x1;
-        }
-
-        public float getY1() {
-            return y1;
-        }
-
-        public float getX2() {
-            return x2;
-        }
-
-        public float getY2() {
-            return y2;
-        }
-
-        public int getNumber() {
-            return number;
-        }
-
-        public float getMaxProb() {
-            return maxProb;
-        }
     }
 
-    private Data data = new Data();
-    private Paint paint = new Paint();
     private Rect tmpRect = new Rect();
 
-    public Data getOrCreate(ImageProxy imageProxy) {
-        ImageInfo imageInfo = imageProxy.getImageInfo();
-        boolean rotated = ((imageInfo.getRotationDegrees() != 0) && (imageInfo.getRotationDegrees() != 180));
-        int width = rotated ? imageProxy.getHeight() : imageProxy.getWidth();
-        int height = rotated ? imageProxy.getWidth() : imageProxy.getHeight();
-        return getOrCreate(width, height);
-    }
+//    public Data getOrCreate(ImageProxy imageProxy) {
+//        ImageInfo imageInfo = imageProxy.getImageInfo();
+//        boolean rotated = ((imageInfo.getRotationDegrees() != 0) && (imageInfo.getRotationDegrees() != 180));
+//        int width = rotated ? imageProxy.getHeight() : imageProxy.getWidth();
+//        int height = rotated ? imageProxy.getWidth() : imageProxy.getHeight();
+//        return getOrCreate(width, height);
+//    }
 
-    public Data getOrCreate(int width, int height) {
-        if ((data.bitmap == null) || (data.bitmap.isRecycled()) || (data.bitmap.getWidth() != width) || (data.bitmap.getHeight() != height)) {
-            data.bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            data.canvas = (data.bitmap == null) ? null : new Canvas(data.bitmap);
-        }
-        return data;
-    }
-
-    public void updatePictureWithBlockIA(Context context, Bitmap bitmap) {
+    public Data updatePictureWithBlockIA(Context context, Bitmap bitmap) {
+        ArrayList<RectInformation> boxes = new ArrayList<>();
+        boxesStored =  new ArrayList<>();
         try {
             // GET THE MODEL :
             Model model = Model.newInstance(context);
@@ -140,7 +109,7 @@ public class TextBitmap {
             // RUN THE MODEL & GET THE OUTPUT :
             // SHAPE [ 1 picture, 4 coordinates + 10 probabilities = 14 , 2100 boxes]
             Model.Outputs outputs = model.process(inputFeature0);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+            TensorBuffer outputFeature0 = outputs.getOutputAsTensorBuffer();
             float[] outputData = outputFeature0.getFloatArray();
 
             // TRANSPOSE IT : "-" to "|"
@@ -160,44 +129,33 @@ public class TextBitmap {
                 RectInformation info = parseRow(row);
                 if (info.maxProb > 0.5) {
                     boxes.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
+                    boxesStored.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
                 }
             }
 
-            updateWithBlocksAI(bitmap);
+            // THERE IS DUPLICATED BOX, WE NEED TO REMOVE THEM :
+            int bias = 2; // FORKS BETWEEN -> TODO : should depend of the number size.
+            boolean removed = false;
+            for (int i = 0; i < boxesStored.size(); i++) {
+                if (removed) {
+                    i = i - 1;
+                    removed = false;
+                }
+                for (int j = i + 1 ; j < boxesStored.size(); j++) {
+                    if (boxesStored.get(i).x1 - bias < boxesStored.get(j).x1 && boxesStored.get(i).x1 + bias > boxesStored.get(j).x1 && boxesStored.get(i).y1 - bias < boxesStored.get(j).y1 && boxesStored.get(i).y1 + bias > boxesStored.get(j).y1) {
+                        boxesStored.remove(j);
+                        removed = true;
+                    }
+                }
+            }
+
             model.close();
 
         } catch (IOException e) {
             // TODO Handle the exception
         }
-    }
 
-    public float[] getFloatArray(Context context) {
-        AssetManager assetManager = context.getAssets();
-        List<Float> floatList = new ArrayList<>();
-
-        try {
-            InputStream inputStream = assetManager.open("output.txt");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                float value = Float.parseFloat(line);
-                floatList.add(value);
-            }
-
-            // Close the BufferedReader
-            bufferedReader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        float[] floatArray = new float[floatList.size()];
-        for (int i = 0; i < floatList.size(); i++) {
-            floatArray[i] = floatList.get(i);
-        }
-        return floatArray;
-        // Use the float array in Java as needed
+        return updateWithBlocksAI(bitmap, boxes);
     }
 
     public RectInformation parseRow(float[] data) {
@@ -224,38 +182,31 @@ public class TextBitmap {
         return new RectInformation(x1, y1, x2, y2, maxClassId, maxProb);
     }
 
-    public void updateWithFrame(boolean cleanBitmap) {
-        if (data.canvas != null) {
+//    public void updateWithFrame(boolean cleanBitmap) {
+//        if (data.canvas != null) {
+//
+//            if (cleanBitmap) {
+//                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
+//            }
+//
+//            paint.setStrokeWidth(3);
+//            paint.setStyle(Paint.Style.STROKE);
+//            paint.setColor(0xFFFF00FF);
+//            float w = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
+//            float h = w / FRAME_RATIO;
+//            float x = (data.bitmap.getWidth() - w) / 2;
+//            float y = (data.bitmap.getHeight() - h) / 2;
+//            data.canvas.drawRect(x, y, x + w, y + h, paint);
+//
+//        }
+//    }
 
-            if (cleanBitmap) {
-                data.canvas.drawColor(0xFFFFFFFF, PorterDuff.Mode.CLEAR);
-            }
-
-            paint.setStrokeWidth(3);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(0xFFFF00FF);
-            float w = FRAME_WIDTH_PERCENT * data.bitmap.getWidth();
-            float h = w / FRAME_RATIO;
-            float x = (data.bitmap.getWidth() - w) / 2;
-            float y = (data.bitmap.getHeight() - h) / 2;
-            data.canvas.drawRect(x, y, x + w, y + h, paint);
-
-        }
-    }
-
-    public void updateWithBlocksAI(Bitmap bitmap) {
-        float boxW = FRAME_WIDTH_PERCENT * bitmap.getWidth();
-        float boxH = boxW / FRAME_RATIO;
-
-
+    public Data updateWithBlocksAI(Bitmap bitmap, ArrayList<RectInformation> boxes) {
+        Data data = new Data();
+        Paint paint = new Paint();
 
         data.bitmap = bitmap;
-        data.canvas = (data.bitmap == null) ? null : new Canvas(data.bitmap);
-
-//        data.canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-
-        float boxX = (data.bitmap.getWidth() - boxW) / 2;
-        float boxY = (data.bitmap.getHeight() - boxH) / 2;
+        data.canvas = new Canvas(data.bitmap);
 
         paint.setStrokeWidth(3);
         paint.setStyle(Paint.Style.STROKE);
@@ -273,12 +224,18 @@ public class TextBitmap {
             paint.setStrokeWidth(2);
             paint.setStyle(Paint.Style.STROKE);
             data.canvas.drawRect(rect, paint);
-
-
         }
+        return data;
     }
 
-    public void updateWithBarcodes(List<Barcode> blocks, boolean cleanBitmap, int maxWidth, boolean skipIfOutOfBounds) {
+    public Data updateWithBarcodes(List<Barcode> blocks, boolean cleanBitmap, int maxWidth, boolean skipIfOutOfBounds, Bitmap bitmap) {
+        Data data = new Data();
+        Paint paint = new Paint();
+        Bitmap mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+        data.bitmap = mutableBitmap;
+        data.canvas = new Canvas(data.bitmap);
+
         if (data.canvas != null) {
 
             if (cleanBitmap) {
@@ -339,6 +296,18 @@ public class TextBitmap {
                 }
             }
         }
+
+        return data;
+    }
+
+    public String giveThePriceString() {
+        StringBuilder price = new StringBuilder();
+
+        for (int i = 0; i < boxesStored.size(); i++) {
+            price.append(boxesStored.get(i).number);
+        }
+
+        return price.toString();
     }
 
 }

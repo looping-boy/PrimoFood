@@ -51,29 +51,17 @@ public class FirstFragment extends Fragment {
     private FragmentFirstBinding binding;
     public static final int RESULT_OK = -1;
     int pictureIndex = 0;
-    private int[] pictures = new int[]{
-            R.drawable.triangle,
-            R.drawable.carann3,
-            R.drawable.carrefour199,
-            R.drawable.tni,
-            R.drawable.zoom,
-            R.drawable.casino_20221004_121529,
-            R.drawable.casino_20221004_121401,
-            R.drawable.casino_20221004_121345,
-    };
+    int pictureResId = R.drawable.carrefour199;
 
     private final TextBitmap textBitmap = new TextBitmap();
-    private boolean displayOverlay = false;
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
+            @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -91,70 +79,39 @@ public class FirstFragment extends Fragment {
             }
         });
 
-        updatePicture();
-
-        binding.textrecognition.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayOverlay = !displayOverlay;
-                int pictureResId = pictures[pictureIndex];
-                Bitmap bitmap = loadBitmap(pictureResId);
-                updatePictureWithBoxes(bitmap);
-            }
-        });
-
-        binding.barCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pictureResId = pictures[pictureIndex];
-                Bitmap bitmap = loadBitmap(pictureResId);
-                barCode(bitmap);
-            }
-        });
-
-    }
-
-    private void updatePicture() {
-        int pictureResId = pictures[pictureIndex];
         binding.picturePreview.setImageResource(pictureResId);
         binding.pictureOverlay.setImageBitmap(null);
-        displayOverlay = false;
+
+        binding.textrecognition.setOnClickListener(v -> {
+            Bitmap bitmap = loadBitmap(pictureResId);
+            updatePictureWithBoxes(bitmap);
+        });
+
+        binding.barCode.setOnClickListener(v -> {
+            Bitmap bitmap = loadBitmap(pictureResId);
+            barCode(bitmap);
+        });
+
     }
 
     private void updatePictureWithBoxes(Bitmap bitmap) {
-
-//        bitmap = Bitmap.createBitmap(bitmap, 0, 0, 640, 640);
-        bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
-
         if (bitmap != null) {
+            bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
             binding.picturePreview.setImageBitmap(bitmap);
-//            if (displayOverlay) {
-                TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
-                if (data.canvas != null) {
-                    textBitmap.updatePictureWithBlockIA(this.getContext(), bitmap);
-                    binding.pictureOverlay.setImageBitmap(data.bitmap);
-                }
-//            } else {
-//                binding.pictureOverlay.setImageBitmap(null);
-//            }
+            TextBitmap.Data dataOutput = textBitmap.updatePictureWithBlockIA(this.getContext(), bitmap);
+            binding.pictureOverlay.setImageBitmap(dataOutput.bitmap);
+            String price = textBitmap.giveThePriceString();
+            binding.result.setText(price);
         }
     }
 
     private void updateWithBarcodes(List<Barcode> barcodes) {
-        displayOverlay = !displayOverlay;
-        int pictureResId = pictures[pictureIndex];
         Bitmap bitmap = loadBitmap(pictureResId);
         if (bitmap != null) {
             binding.picturePreview.setImageBitmap(bitmap);
-            if (displayOverlay) {
-                TextBitmap.Data data = textBitmap.getOrCreate(bitmap.getWidth(), bitmap.getHeight());
-                if (data.canvas != null) {
-                    textBitmap.updateWithBarcodes(barcodes, true, data.bitmap.getWidth(), false);
-                    binding.pictureOverlay.setImageBitmap(data.bitmap);
-                }
-            } else {
-                binding.pictureOverlay.setImageBitmap(null);
-            }
+//            bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
+            TextBitmap.Data dataOutput = textBitmap.updateWithBarcodes(barcodes, true, bitmap.getWidth(), false, bitmap);
+            binding.pictureOverlay.setImageBitmap(dataOutput.bitmap);
         }
     }
 
@@ -179,7 +136,7 @@ public class FirstFragment extends Fragment {
                     public void onSuccess(List<Barcode> barcodes) {
                         // Task completed successfully
                         Log.i(TAG, "Found " + barcodes.size() + " barcodes");
-                        for(Barcode barcode: barcodes) {
+                        for (Barcode barcode : barcodes) {
                             Log.i(TAG, "Barcode: " + barcode.getDisplayValue());
                         }
                         updateWithBarcodes(barcodes);
@@ -204,13 +161,8 @@ public class FirstFragment extends Fragment {
                 image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
 
                 image = Bitmap.createScaledBitmap(image, 320, 320, false);
-
                 updatePictureWithBoxes(image);
 
-//                TextBitmap.Data dataPhoto = textBitmap.getOrCreate(image.getWidth(), image.getHeight());
-//                binding.picturePreview.setImageBitmap(image);
-//                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
-//                binding.pictureOverlay.setImageBitmap(dataPhoto.bitmap);
             } else {
                 Uri dat = data.getData();
                 Bitmap image = null;
@@ -221,13 +173,8 @@ public class FirstFragment extends Fragment {
                 }
 
                 image = Bitmap.createScaledBitmap(image, 320, 320, false);
-
                 updatePictureWithBoxes(image);
 
-//                TextBitmap.Data dataGallery = textBitmap.getOrCreate(image.getWidth(), image.getHeight());
-//                binding.picturePreview.setImageBitmap(image);
-//                textBitmap.updatePictureWithBlockIA(this.getContext(), image);
-//                binding.pictureOverlay.setImageBitmap(dataGallery.bitmap);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
