@@ -38,7 +38,7 @@ public class SecondFragment extends Fragment implements CameraScanner.CameraScan
 
     private FragmentSecondBinding binding;
     private CameraScanner cameraScanner;
-    private final TextBitmap textBitmap = new TextBitmap();
+    private final DigitProcess textBitmap = new DigitProcess();
 
     @Override
     public View onCreateView(

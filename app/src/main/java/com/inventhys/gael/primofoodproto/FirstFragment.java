@@ -13,13 +13,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,21 +26,10 @@ import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.label.ImageLabel;
-import com.google.mlkit.vision.label.ImageLabeler;
-import com.google.mlkit.vision.label.ImageLabeling;
-import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
-import com.google.mlkit.vision.objects.DetectedObject;
-import com.google.mlkit.vision.objects.ObjectDetection;
-import com.google.mlkit.vision.objects.ObjectDetector;
-import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
-import com.google.mlkit.vision.text.Text;
-import com.google.mlkit.vision.text.TextRecognition;
-import com.google.mlkit.vision.text.TextRecognizer;
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.inventhys.gael.primofoodproto.databinding.FragmentFirstBinding;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FirstFragment extends Fragment {
@@ -53,7 +40,8 @@ public class FirstFragment extends Fragment {
     int pictureIndex = 0;
     int pictureResId = R.drawable.carrefour199;
 
-    private final TextBitmap textBitmap = new TextBitmap();
+    private final DigitProcess digitProcess = new DigitProcess();
+    private final PriceTagProcess priceTagProcess = new PriceTagProcess();
 
     @Override
     public View onCreateView(
@@ -98,9 +86,16 @@ public class FirstFragment extends Fragment {
         if (bitmap != null) {
             bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
             binding.picturePreview.setImageBitmap(bitmap);
-            TextBitmap.Data dataOutput = textBitmap.updatePictureWithBlockIA(this.getContext(), bitmap);
-            binding.pictureOverlay.setImageBitmap(dataOutput.bitmap);
-            String price = textBitmap.giveThePriceString();
+
+            DrawingProcess drawingProcess = new DrawingProcess();
+            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
+            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
+
+            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
+            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
+
+            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
+            String price = digitProcess.giveThePriceString();
             binding.result.setText(price);
         }
     }
@@ -109,9 +104,8 @@ public class FirstFragment extends Fragment {
         Bitmap bitmap = loadBitmap(pictureResId);
         if (bitmap != null) {
             binding.picturePreview.setImageBitmap(bitmap);
-//            bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
-            TextBitmap.Data dataOutput = textBitmap.updateWithBarcodes(barcodes, true, bitmap.getWidth(), false, bitmap);
-            binding.pictureOverlay.setImageBitmap(dataOutput.bitmap);
+//            BitmapCanvas bitmapCanvas = digitProcess.updateWithBarcodes(barcodes, true, bitmap.getWidth(), false, bitmap);
+//            binding.pictureOverlay.setImageBitmap(bitmapCanvas.bitmap);
         }
     }
 
