@@ -44,7 +44,7 @@ public class RectInformation {
 //------------------------------------------------------------------------
 
     public static class Result {
-        public List<double[]> bboxes;
+        public List<float[]> bboxes;
         public List<Float> classes;
         public List<Float> probabilities;
 
@@ -81,7 +81,7 @@ public class RectInformation {
                 }
             }
 
-            result.bboxes.add(new double[]{x1, y1, x2, y2});
+            result.bboxes.add(new float[]{x1, y1, x2, y2});
             result.classes.add((float) maxClassId);
             result.probabilities.add(maxProb);
 //                if (info.maxProb > 0.5) {

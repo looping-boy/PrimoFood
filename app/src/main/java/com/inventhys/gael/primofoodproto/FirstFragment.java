@@ -96,9 +96,9 @@ public class FirstFragment extends Fragment {
 //            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
 
             ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
-//            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
+            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
 //
-//            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
+            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
 //            String price = digitProcess.giveThePriceString();
 //            binding.result.setText(price);
         }

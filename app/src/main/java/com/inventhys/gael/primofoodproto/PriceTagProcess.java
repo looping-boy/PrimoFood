@@ -102,28 +102,38 @@ public class PriceTagProcess {
             // GET MAX PROBABILITY BOXES :
             RectInformation.Result finalResult = RectInformation.parseRowDict(outputDataTransposed);
 // Parse the row data to get bboxes, classes, and probabilities
-            List<double[]> bboxes = finalResult.bboxes;
+            List<float[]> bboxes = finalResult.bboxes;
             List<Float> probabilities = finalResult.probabilities;
 
             // Perform Non-Maximum Suppression (NMS) to filter out overlapping boxes
-            List<Integer> cleanBoxIdx = NMSBoxes(bboxes, probabilities, 0.5, 0.8);
+            List<Integer> cleanBoxIdx = NMSBoxes(bboxes, probabilities, 0.5f, 0.8f);
 
+            for (int i = 0; i < cleanBoxIdx.size(); i++) {
+                float x1 = finalResult.bboxes.get(cleanBoxIdx.get(i))[0];
+                float y1 = finalResult.bboxes.get(cleanBoxIdx.get(i))[1];
+                float x2 = finalResult.bboxes.get(cleanBoxIdx.get(i))[2];
+                float y2 = finalResult.bboxes.get(cleanBoxIdx.get(i))[3];
+                int number = Math.round(finalResult.classes.get(i));
+                float maxProb = finalResult.probabilities.get(i);
+                boxesStored.add(new RectInformation(x1, y1, x2, y2, number, maxProb));
+                boxes.add(new RectInformation(x1, y1, x2, y2, number, maxProb));
+            }
 
             // THERE IS DUPLICATED BOX, WE NEED TO REMOVE THEM :
             int bias = 2; // FORKS BETWEEN -> TODO : should depend of the number size.
-            boolean removed = false;
-            for (int i = 0; i < boxesStored.size(); i++) {
-                if (removed) {
-                    i = i - 1;
-                    removed = false;
-                }
-                for (int j = i + 1; j < boxesStored.size(); j++) {
-                    if (boxesStored.get(i).x1 - bias < boxesStored.get(j).x1 && boxesStored.get(i).x1 + bias > boxesStored.get(j).x1 && boxesStored.get(i).y1 - bias < boxesStored.get(j).y1 && boxesStored.get(i).y1 + bias > boxesStored.get(j).y1) {
-                        boxesStored.remove(j);
-                        removed = true;
-                    }
-                }
-            }
+//            boolean removed = false;
+//            for (int i = 0; i < boxesStored.size(); i++) {
+//                if (removed) {
+//                    i = i - 1;
+//                    removed = false;
+//                }
+//                for (int j = i + 1; j < boxesStored.size(); j++) {
+//                    if (boxesStored.get(i).x1 - bias < boxesStored.get(j).x1 && boxesStored.get(i).x1 + bias > boxesStored.get(j).x1 && boxesStored.get(i).y1 - bias < boxesStored.get(j).y1 && boxesStored.get(i).y1 + bias > boxesStored.get(j).y1) {
+//                        boxesStored.remove(j);
+//                        removed = true;
+//                    }
+//                }
+//            }
 
             model.close();
 
@@ -134,7 +144,7 @@ public class PriceTagProcess {
         return boxes;
     }
 
-    public static List<Integer> NMSBoxes(List<double[]> bboxes, List<Float> probabilities, double scoreThreshold, double nmsThreshold) {
+    public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold) {
         List<Integer> indices = new ArrayList<>();
         if (bboxes.isEmpty()) {
             return indices;
@@ -146,7 +156,7 @@ public class PriceTagProcess {
             scoresMat.push_back(new MatOfFloat(probability));
         }
 
-        for (double[] bbox : bboxes) {
+        for (float[] bbox : bboxes) {
             boxesMat.push_back(new MatOfRect2d(new Rect2d(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])));
         }
 //        MatOfFloat mfConfs = new MatOfFloat(Converters.vector_float_to_Mat(probabilities));
