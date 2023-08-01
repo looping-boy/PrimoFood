@@ -95,7 +95,7 @@ public class DigitProcess {
             OutputDataRefactor outputDataRefactor = RectInformation.parseRowDict(outputDataTransposed, 14);
 
             // PERFORM A NON MAXIMUM SUPPRESSION TO FILTER OUT THE OVERLAPPING BOXES :
-            List<Integer> cleanBoxIdx = RectInformation.NMSBoxes(outputDataRefactor.bboxes, outputDataRefactor.probabilities, 0.3f, 0.2f);
+            List<Integer> cleanBoxIdx = RectInformation.NMSBoxes(outputDataRefactor.bboxes, outputDataRefactor.probabilities, 0.5f, 0.7f);
 
             // STORE ALL THE BOXES :
             for (int i = 0; i < cleanBoxIdx.size(); i++) {
@@ -122,10 +122,16 @@ public class DigitProcess {
                     }
                 }
 
+                // PUT IT IN THE FIRST PLACE OF THE LIST :
+                boxes.add(0, boxes.get(tallestId));
+                boxes.remove(tallestId);
+                boxesStored.add(0, boxesStored.get(tallestId));
+                boxesStored.remove(tallestId);
+
                 float bias = 10f;
 
                 for (int k = 0; k < boxes.size(); k++) {
-                    if (!boxes.isEmpty()) {
+                    if (boxes.size() > 0 && k <= boxes.size() - 1) {
                         // REMOVE WHAT's ON THE LEFT OF TALLEST :
                         if (boxes.get(k).x1 < boxes.get(tallestId).x1) {
                             boxes.remove(k);
