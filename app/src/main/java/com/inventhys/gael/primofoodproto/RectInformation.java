@@ -84,12 +84,7 @@ public class RectInformation {
             result.bboxes.add(new float[]{x1, y1, x2, y2});
             result.classes.add((float) maxClassId);
             result.probabilities.add(maxProb);
-//                if (info.maxProb > 0.5) {
-//                    boxes.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
-//                    boxesStored.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
-//                }
         }
-
 
         return result;
     }

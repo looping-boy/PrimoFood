@@ -98,15 +98,11 @@ public class PriceTagProcess {
                 }
             }
 
-//            RectInformation.Result finalResult = new RectInformation.Result();
-            // GET MAX PROBABILITY BOXES :
+            // PRESENT THE BOXES AN OTHER WAY :
             RectInformation.Result finalResult = RectInformation.parseRowDict(outputDataTransposed);
-// Parse the row data to get bboxes, classes, and probabilities
-            List<float[]> bboxes = finalResult.bboxes;
-            List<Float> probabilities = finalResult.probabilities;
 
-            // Perform Non-Maximum Suppression (NMS) to filter out overlapping boxes
-            List<Integer> cleanBoxIdx = NMSBoxes(bboxes, probabilities, 0.5f, 0.8f);
+            // PERFORM A NON MAXIMUM SUPPRESSION TO FILTER OUT THE OVERLAPPING BOXES :
+            List<Integer> cleanBoxIdx = NMSBoxes(finalResult.bboxes, finalResult.probabilities, 0.5f, 0.8f);
 
             for (int i = 0; i < cleanBoxIdx.size(); i++) {
                 float x1 = finalResult.bboxes.get(cleanBoxIdx.get(i))[0];
@@ -119,22 +115,6 @@ public class PriceTagProcess {
                 boxes.add(new RectInformation(x1, y1, x2, y2, number, maxProb));
             }
 
-            // THERE IS DUPLICATED BOX, WE NEED TO REMOVE THEM :
-            int bias = 2; // FORKS BETWEEN -> TODO : should depend of the number size.
-//            boolean removed = false;
-//            for (int i = 0; i < boxesStored.size(); i++) {
-//                if (removed) {
-//                    i = i - 1;
-//                    removed = false;
-//                }
-//                for (int j = i + 1; j < boxesStored.size(); j++) {
-//                    if (boxesStored.get(i).x1 - bias < boxesStored.get(j).x1 && boxesStored.get(i).x1 + bias > boxesStored.get(j).x1 && boxesStored.get(i).y1 - bias < boxesStored.get(j).y1 && boxesStored.get(i).y1 + bias > boxesStored.get(j).y1) {
-//                        boxesStored.remove(j);
-//                        removed = true;
-//                    }
-//                }
-//            }
-
             model.close();
 
         } catch (IOException e) {
@@ -146,12 +126,11 @@ public class PriceTagProcess {
 
     public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold) {
         List<Integer> indices = new ArrayList<>();
-        if (bboxes.isEmpty()) {
+        if (bboxes.isEmpty() || probabilities.isEmpty()) {
             return indices;
         }
 
         // Prepare the bounding boxes and scores for NMS
-
         for (Float probability : probabilities) {
             scoresMat.push_back(new MatOfFloat(probability));
         }
@@ -159,36 +138,20 @@ public class PriceTagProcess {
         for (float[] bbox : bboxes) {
             boxesMat.push_back(new MatOfRect2d(new Rect2d(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])));
         }
-//        MatOfFloat mfConfs = new MatOfFloat(Converters.vector_float_to_Mat(probabilities));
+
         // Perform Non-Maximum Suppression
         MatOfInt indicesMat = new MatOfInt();
         Dnn.NMSBoxes(boxesMat, scoresMat, (float) scoreThreshold, (float) nmsThreshold, indicesMat);
 
         // Convert the MatOfInt to a List of Integers
-        int[] indicesArray = indicesMat.toArray();
-        for (int i : indicesArray) {
-            indices.add(i);
+        if (!indicesMat.empty()) {
+            int[] indicesArray = indicesMat.toArray();
+            for (int i : indicesArray) {
+                indices.add(i);
+            }
         }
 
         return indices;
     }
-
-    public String giveThePriceString() {
-        StringBuilder price = new StringBuilder();
-
-        for (int i = 0; i < boxesStored.size(); i++) {
-            price.append(boxesStored.get(i).number);
-        }
-
-        return price.toString();
-    }
-
-    // --------------------------------------------------------------------
-
-
-
-
-
-
 
 }
