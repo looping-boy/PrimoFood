@@ -81,7 +81,7 @@ public class FirstFragment extends Fragment {
         });
 
         // ----- FOR TEST -------------
-        Bitmap bitmap = loadBitmap(R.drawable.output);
+        Bitmap bitmap = loadBitmap(R.drawable.script_figures);
         updatePictureWithBoxes(bitmap);
 
     }
@@ -92,15 +92,15 @@ public class FirstFragment extends Fragment {
             binding.picturePreview.setImageBitmap(bitmap);
 
             DrawingProcess drawingProcess = new DrawingProcess();
-//            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
-//            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
+            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
+            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
 
-            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
-            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
+//            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
+//            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
 //
-            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
-//            String price = digitProcess.giveThePriceString();
-//            binding.result.setText(price);
+            binding.pictureOverlay.setImageBitmap(canvasWithDigits.bitmap);
+            String price = digitProcess.giveThePriceString();
+            binding.result.setText(price);
         }
     }
 

@@ -40,13 +40,10 @@ public class PriceTagProcess {
     private final float FRAME_RATIO = 4 / 3f;
     private final short IMAGE_SIZE = 320;
 
-    ArrayList<RectInformation> boxesStored = new ArrayList<>();
-
     private Rect tmpRect = new Rect();
 
     public ArrayList<RectInformation> getBoxesWithAI(Context context, Bitmap bitmap) {
         ArrayList<RectInformation> boxes = new ArrayList<>();
-        boxesStored = new ArrayList<>();
         try {
             // GET THE MODEL :
             Pricetag model = Pricetag.newInstance(context);
@@ -83,7 +80,7 @@ public class PriceTagProcess {
             inputFeature0.loadArray(floatArray, new int[]{1, IMAGE_SIZE, IMAGE_SIZE, 3});
 
             // RUN THE MODEL & GET THE OUTPUT :
-            // SHAPE [ 1 picture, 4 coordinates + 10 probabilities = 14 , 2100 boxes]
+            // SHAPE [ 1 picture, 4 coordinates + 1 probabilities = 6 , 2100 boxes]
             Pricetag.Outputs outputs = model.process(inputFeature0);
             TensorBuffer outputFeature0 = outputs.getOutputAsTensorBuffer();
             float[] outputData = outputFeature0.getFloatArray();
@@ -99,19 +96,19 @@ public class PriceTagProcess {
             }
 
             // PRESENT THE BOXES AN OTHER WAY :
-            RectInformation.Result finalResult = RectInformation.parseRowDict(outputDataTransposed);
+            OutputDataRefactor outputDataRefactor = RectInformation.parseRowDict(outputDataTransposed, 6);
 
             // PERFORM A NON MAXIMUM SUPPRESSION TO FILTER OUT THE OVERLAPPING BOXES :
-            List<Integer> cleanBoxIdx = NMSBoxes(finalResult.bboxes, finalResult.probabilities, 0.5f, 0.8f);
+            List<Integer> cleanBoxIdx = RectInformation.NMSBoxes(outputDataRefactor.bboxes, outputDataRefactor.probabilities, 0.5f, 0.8f);
 
+            // STORE ALL THE BOXES :
             for (int i = 0; i < cleanBoxIdx.size(); i++) {
-                float x1 = finalResult.bboxes.get(cleanBoxIdx.get(i))[0];
-                float y1 = finalResult.bboxes.get(cleanBoxIdx.get(i))[1];
-                float x2 = finalResult.bboxes.get(cleanBoxIdx.get(i))[2];
-                float y2 = finalResult.bboxes.get(cleanBoxIdx.get(i))[3];
-                int number = Math.round(finalResult.classes.get(i));
-                float maxProb = finalResult.probabilities.get(i);
-                boxesStored.add(new RectInformation(x1, y1, x2, y2, number, maxProb));
+                float x1 = outputDataRefactor.bboxes.get(cleanBoxIdx.get(i))[0];
+                float y1 = outputDataRefactor.bboxes.get(cleanBoxIdx.get(i))[1];
+                float x2 = outputDataRefactor.bboxes.get(cleanBoxIdx.get(i))[2];
+                float y2 = outputDataRefactor.bboxes.get(cleanBoxIdx.get(i))[3];
+                int number = Math.round(outputDataRefactor.classes.get(i));
+                float maxProb = outputDataRefactor.probabilities.get(i);
                 boxes.add(new RectInformation(x1, y1, x2, y2, number, maxProb));
             }
 
@@ -124,34 +121,6 @@ public class PriceTagProcess {
         return boxes;
     }
 
-    public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold) {
-        List<Integer> indices = new ArrayList<>();
-        if (bboxes.isEmpty() || probabilities.isEmpty()) {
-            return indices;
-        }
 
-        // Prepare the bounding boxes and scores for NMS
-        for (Float probability : probabilities) {
-            scoresMat.push_back(new MatOfFloat(probability));
-        }
-
-        for (float[] bbox : bboxes) {
-            boxesMat.push_back(new MatOfRect2d(new Rect2d(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])));
-        }
-
-        // Perform Non-Maximum Suppression
-        MatOfInt indicesMat = new MatOfInt();
-        Dnn.NMSBoxes(boxesMat, scoresMat, (float) scoreThreshold, (float) nmsThreshold, indicesMat);
-
-        // Convert the MatOfInt to a List of Integers
-        if (!indicesMat.empty()) {
-            int[] indicesArray = indicesMat.toArray();
-            for (int i : indicesArray) {
-                indices.add(i);
-            }
-        }
-
-        return indices;
-    }
 
 }

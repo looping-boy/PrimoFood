@@ -1,5 +1,14 @@
 package com.inventhys.gael.primofoodproto;
 
+import static com.inventhys.gael.primofoodproto.MainActivity.boxesMat;
+import static com.inventhys.gael.primofoodproto.MainActivity.scoresMat;
+
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
+import org.opencv.core.MatOfRect2d;
+import org.opencv.core.Rect2d;
+import org.opencv.dnn.Dnn;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,24 +52,14 @@ public class RectInformation {
 
 //------------------------------------------------------------------------
 
-    public static class Result {
-        public List<float[]> bboxes;
-        public List<Float> classes;
-        public List<Float> probabilities;
 
-        public Result() {
-            bboxes = new ArrayList<>();
-            classes = new ArrayList<>();
-            probabilities = new ArrayList<>();
-        }
-    }
 
-    public static Result parseRowDict(float[] outputDataTransposed) {
-        Result result = new Result();
+    public static OutputDataRefactor parseRowDict(float[] outputDataTransposed, int column) {
+        OutputDataRefactor result = new OutputDataRefactor();
 
         for (int i = 0; i < 2100; i++) {
-            float[] row = new float[6];
-            System.arraycopy(outputDataTransposed, i * 6, row, 0, 6);
+            float[] row = new float[column];
+            System.arraycopy(outputDataTransposed, i * column, row, 0, column);
             float xc = row[0];
             float yc = row[1];
             float w = row[2];
@@ -87,5 +86,35 @@ public class RectInformation {
         }
 
         return result;
+    }
+
+    public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold) {
+        List<Integer> indices = new ArrayList<>();
+        if (bboxes.isEmpty() || probabilities.isEmpty()) {
+            return indices;
+        }
+
+        // Prepare the bounding boxes and scores for NMS
+        for (Float probability : probabilities) {
+            scoresMat.push_back(new MatOfFloat(probability));
+        }
+
+        for (float[] bbox : bboxes) {
+            boxesMat.push_back(new MatOfRect2d(new Rect2d(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])));
+        }
+
+        // Perform Non-Maximum Suppression
+        MatOfInt indicesMat = new MatOfInt();
+        Dnn.NMSBoxes(boxesMat, scoresMat, (float) scoreThreshold, (float) nmsThreshold, indicesMat);
+
+        // Convert the MatOfInt to a List of Integers
+        if (!indicesMat.empty()) {
+            int[] indicesArray = indicesMat.toArray();
+            for (int i : indicesArray) {
+                indices.add(i);
+            }
+        }
+
+        return indices;
     }
 }
