@@ -1,5 +1,7 @@
 package com.inventhys.gael.primofoodproto;
 
+import static com.inventhys.gael.primofoodproto.MainActivity.boxesMat;
+import static com.inventhys.gael.primofoodproto.MainActivity.scoresMat;
 import static org.opencv.dnn.Dnn.NMSBoxes;
 
 import android.content.Context;
@@ -10,11 +12,19 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.inventhys.gael.primofoodproto.ml.Pricetag;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfRect2d;
+import org.opencv.core.Rect2d;
+import org.opencv.dnn.Dnn;
+import org.opencv.utils.Converters;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
@@ -93,10 +103,10 @@ public class PriceTagProcess {
             RectInformation.Result finalResult = RectInformation.parseRowDict(outputDataTransposed);
 // Parse the row data to get bboxes, classes, and probabilities
             List<double[]> bboxes = finalResult.bboxes;
-            List<Double> probabilities = finalResult.probabilities;
+            List<Float> probabilities = finalResult.probabilities;
 
             // Perform Non-Maximum Suppression (NMS) to filter out overlapping boxes
-//            List<Integer> cleanBoxIdx = NMSBoxes(new MatOfRect(boxes), probabilities, 0.5, 0.8);
+            List<Integer> cleanBoxIdx = NMSBoxes(bboxes, probabilities, 0.5, 0.8);
 
 
             // THERE IS DUPLICATED BOX, WE NEED TO REMOVE THEM :
@@ -122,6 +132,35 @@ public class PriceTagProcess {
         }
 
         return boxes;
+    }
+
+    public static List<Integer> NMSBoxes(List<double[]> bboxes, List<Float> probabilities, double scoreThreshold, double nmsThreshold) {
+        List<Integer> indices = new ArrayList<>();
+        if (bboxes.isEmpty()) {
+            return indices;
+        }
+
+        // Prepare the bounding boxes and scores for NMS
+
+        for (Float probability : probabilities) {
+            scoresMat.push_back(new MatOfFloat(probability));
+        }
+
+        for (double[] bbox : bboxes) {
+            boxesMat.push_back(new MatOfRect2d(new Rect2d(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])));
+        }
+//        MatOfFloat mfConfs = new MatOfFloat(Converters.vector_float_to_Mat(probabilities));
+        // Perform Non-Maximum Suppression
+        MatOfInt indicesMat = new MatOfInt();
+        Dnn.NMSBoxes(boxesMat, scoresMat, (float) scoreThreshold, (float) nmsThreshold, indicesMat);
+
+        // Convert the MatOfInt to a List of Integers
+        int[] indicesArray = indicesMat.toArray();
+        for (int i : indicesArray) {
+            indices.add(i);
+        }
+
+        return indices;
     }
 
     public String giveThePriceString() {
