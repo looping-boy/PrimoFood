@@ -14,6 +14,8 @@ import com.inventhys.gael.primofoodproto.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+
+import org.opencv.android.OpenCVLoader;
 // MLKIT: https://developers.google.com/ml-kit/guides
 // Image Labelling: https://developers.google.com/ml-kit/vision/image-labeling/android
 

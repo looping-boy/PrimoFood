@@ -1,5 +1,7 @@
 package com.inventhys.gael.primofoodproto;
 
+import static org.opencv.dnn.Dnn.NMSBoxes;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -12,12 +14,15 @@ import android.text.TextUtils;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.inventhys.gael.primofoodproto.ml.Pricetag;
 
+import org.opencv.core.MatOfRect2d;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.transform.Result;
 
 public class PriceTagProcess {
 
@@ -83,16 +88,16 @@ public class PriceTagProcess {
                 }
             }
 
+//            RectInformation.Result finalResult = new RectInformation.Result();
             // GET MAX PROBABILITY BOXES :
-            for (int i = 0; i < 2100; i++) {
-                float[] row = new float[6];
-                System.arraycopy(outputDataTransposed, i * 6, row, 0, 6);
-                RectInformation info = RectInformation.parseRow(row);
-                if (info.maxProb > 0.5) {
-                    boxes.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
-                    boxesStored.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
-                }
-            }
+            RectInformation.Result finalResult = RectInformation.parseRowDict(outputDataTransposed);
+// Parse the row data to get bboxes, classes, and probabilities
+            List<double[]> bboxes = finalResult.bboxes;
+            List<Double> probabilities = finalResult.probabilities;
+
+            // Perform Non-Maximum Suppression (NMS) to filter out overlapping boxes
+//            List<Integer> cleanBoxIdx = NMSBoxes(new MatOfRect(boxes), probabilities, 0.5, 0.8);
+
 
             // THERE IS DUPLICATED BOX, WE NEED TO REMOVE THEM :
             int bias = 2; // FORKS BETWEEN -> TODO : should depend of the number size.
@@ -128,5 +133,13 @@ public class PriceTagProcess {
 
         return price.toString();
     }
+
+    // --------------------------------------------------------------------
+
+
+
+
+
+
 
 }

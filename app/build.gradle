@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'kotlin-android'
 }
 
 android {
@@ -77,5 +78,8 @@ dependencies {
 
     implementation 'org.tensorflow:tensorflow-lite-support:0.1.0'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0'
+
+    implementation project(':sdk') // XYZ depends on the version you downloaded
+
 
 }

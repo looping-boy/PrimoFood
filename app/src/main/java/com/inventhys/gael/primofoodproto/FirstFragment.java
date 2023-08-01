@@ -80,6 +80,10 @@ public class FirstFragment extends Fragment {
             barCode(bitmap);
         });
 
+        // ----- FOR TEST -------------
+        Bitmap bitmap = loadBitmap(R.drawable.output);
+        updatePictureWithBoxes(bitmap);
+
     }
 
     private void updatePictureWithBoxes(Bitmap bitmap) {
@@ -88,15 +92,15 @@ public class FirstFragment extends Fragment {
             binding.picturePreview.setImageBitmap(bitmap);
 
             DrawingProcess drawingProcess = new DrawingProcess();
-            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
-            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
+//            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
+//            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
 
             ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
-            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
-
-            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
-            String price = digitProcess.giveThePriceString();
-            binding.result.setText(price);
+//            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
+//
+//            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
+//            String price = digitProcess.giveThePriceString();
+//            binding.result.setText(price);
         }
     }
 

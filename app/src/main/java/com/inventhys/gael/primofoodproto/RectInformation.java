@@ -1,5 +1,8 @@
 package com.inventhys.gael.primofoodproto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RectInformation {
     float x1, y1, x2, y2;
     int number;
@@ -36,5 +39,58 @@ public class RectInformation {
         }
 
         return new RectInformation(x1, y1, x2, y2, maxClassId, maxProb);
+    }
+
+//------------------------------------------------------------------------
+
+    public static class Result {
+        public List<double[]> bboxes;
+        public List<Double> classes;
+        public List<Double> probabilities;
+
+        public Result() {
+            bboxes = new ArrayList<>();
+            classes = new ArrayList<>();
+            probabilities = new ArrayList<>();
+        }
+    }
+
+    public static Result parseRowDict(float[] outputDataTransposed) {
+        Result result = new Result();
+
+        for (int i = 0; i < 2100; i++) {
+            float[] row = new float[6];
+            System.arraycopy(outputDataTransposed, i * 6, row, 0, 6);
+            float xc = row[0];
+            float yc = row[1];
+            float w = row[2];
+            float h = row[3];
+            float x1 = xc - w / 2;
+            float y1 = yc - h / 2;
+            float x2 = xc + w / 2;
+            float y2 = yc + h / 2;
+
+            float maxProbability = row[4];
+            int maxClassId = 0;
+            float maxProb = maxProbability;
+
+            for (int j = 5; j < row.length; j++) {
+                if (row[j] > maxProb) {
+                    maxProb = row[j];
+                    maxClassId = j - 4;
+                }
+            }
+
+            result.bboxes.add(new double[]{x1, y1, x2, y2});
+            result.classes.add((double) maxClassId);
+            result.probabilities.add((double) maxProb);
+//                if (info.maxProb > 0.5) {
+//                    boxes.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
+//                    boxesStored.add(new RectInformation(info.x1, info.y1, info.x2, info.y2, info.number, info.maxProb));
+//                }
+        }
+
+
+        return result;
     }
 }

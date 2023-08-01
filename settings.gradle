@@ -14,3 +14,4 @@ pluginManagement {
 //}
 rootProject.name = "Primofood proto"
 include ':app'
+include ':sdk'
