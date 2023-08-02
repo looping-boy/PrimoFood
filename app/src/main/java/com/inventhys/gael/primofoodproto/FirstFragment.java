@@ -1,10 +1,15 @@
 package com.inventhys.gael.primofoodproto;
 
+import static com.inventhys.gael.primofoodproto.MainActivity.screenMode;
+
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -40,9 +46,14 @@ public class FirstFragment extends Fragment {
     public static final int RESULT_OK = -1;
     int pictureIndex = 0;
     int pictureResId = R.drawable.carrefour199;
-
+    Uri imageUri;
+    int dimensionFromCamera;
     private final DigitProcess digitProcess = new DigitProcess();
     private final PriceTagProcess priceTagProcess = new PriceTagProcess();
+
+    // SCREEN MODE IS BECAUSE IT APPEARS THAT THE THUMBNAIL (LOW RESOLUTION) WORKS BETTER
+    // WHEN YOU CAPTURE A SCREEN :
+
 
     @Override
     public View onCreateView(
@@ -55,6 +66,30 @@ public class FirstFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        if (screenMode) binding.knobSeekBar.setProgress(0);
+        else binding.knobSeekBar.setProgress(1);
+
+        binding.knobSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (i == 0) {
+                    screenMode = true;
+                } else {
+                    screenMode = false;
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         ((MainActivity) getActivity()).setTitle("hello");
 
@@ -69,8 +104,19 @@ public class FirstFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (getActivity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, 3);
+                    if (screenMode) {
+                        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(cameraIntent, 3);
+                    } else {
+                        ContentValues values = new ContentValues();
+                        values.put(MediaStore.Images.Media.TITLE, "New Picture");
+                        values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+                        imageUri = getContext().getContentResolver().insert(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                        startActivityForResult(intent, 3);
+                    }
                 } else {
                     requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
                 }
@@ -92,32 +138,35 @@ public class FirstFragment extends Fragment {
 //        });
 
         // ----- FOR TEST -------------
-        Bitmap bitmap = loadBitmap(R.drawable.output);
+        Bitmap bitmap = loadBitmap(R.drawable.script_figures);
         updatePictureWithBoxes(bitmap);
 
     }
 
     private void updatePictureWithBoxes(Bitmap bitmap) {
-//        Bitmap bitmapCopy = bitmap.copy(bitmap.getConfig(), true);
-//        bitmapCopy = Bitmap.createScaledBitmap(bitmap, 640, 640, false);
 
-        if (bitmap != null) {
-            bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
-            binding.picturePreview.setImageBitmap(bitmap);
+//        binding.picturePreview.setImageBitmap(bitmap);
 
-            DrawingProcess drawingProcess = new DrawingProcess();
+        Bitmap bitmapCopy = bitmap.copy(bitmap.getConfig(), true);
+        binding.picturePreview.setImageBitmap(bitmapCopy);
+
+        bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
+
+        DrawingProcess drawingProcess = new DrawingProcess();
 //            ArrayList<RectInformation> digitBoxesBefore = digitProcess.getBoxesWithAIBefore(this.getContext(), bitmap);
-            ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
-            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
+        ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
+        ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
 
+
+        bitmap.eraseColor(Color.TRANSPARENT);
 //            BitmapCanvas canvasWithDigitsBefore = drawingProcess.drawBoxes(bitmap, digitBoxesBefore, 0xFF00FFFF, 4);
-            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000, 2);
-            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00, 2);
-//
-//            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
-            String price = digitProcess.giveThePriceString();
-            binding.result.setText(price);
-        }
+        BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000, 2);
+        BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00, 2);
+
+        binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
+        String price = digitProcess.giveThePriceString();
+        binding.result.setText(price);
+
     }
 
     private void updateWithBarcodes(List<Barcode> barcodes) {
@@ -170,13 +219,31 @@ public class FirstFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == 3) {
-                Bitmap image = (Bitmap) data.getExtras().get("data");
-                int dimension = Math.min(image.getWidth(), image.getHeight());
-                image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
+                try {
+                    if (screenMode) {
+                        // OLD CODE :
+                        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+                        int dimension = Math.min(thumbnail.getWidth(), thumbnail.getHeight());
+                        thumbnail = ThumbnailUtils.extractThumbnail(thumbnail, dimension, dimension);
+                        updatePictureWithBoxes(thumbnail);
+                    } else {
+                        // GET BITMAP :
+                        Bitmap thumbnail = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
 
-//                image = Bitmap.createScaledBitmap(image, 320, 320, false);
-                updatePictureWithBoxes(image);
+                        // ROTATE BITMAP :
+                        Matrix matrix = new Matrix();
+                        matrix.postRotate(90);
+                        Bitmap rotatedBitmap = Bitmap.createBitmap(thumbnail, 0, 0, thumbnail.getWidth(), thumbnail.getHeight(), matrix, true);
 
+                        // GET THE MIDDLE OF IT :
+                        Bitmap squareBitmap = getMiddleOfBitmap(rotatedBitmap);
+
+                        // SEND TO UPDATE
+                        updatePictureWithBoxes(squareBitmap);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 Uri dat = data.getData();
                 Bitmap image = null;
@@ -185,12 +252,37 @@ public class FirstFragment extends Fragment {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-//                image = Bitmap.createScaledBitmap(image, 320, 320, false);
                 updatePictureWithBoxes(image);
-
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    public Bitmap getMiddleOfBitmap(Bitmap bitmap) {
+        Bitmap dstBmp;
+
+        if (bitmap.getWidth() >= bitmap.getHeight()) {
+            dimensionFromCamera = bitmap.getHeight();
+            dstBmp = Bitmap.createBitmap(
+                    bitmap,
+                    bitmap.getWidth() / 2 - bitmap.getHeight() / 2,
+                    0,
+                    bitmap.getHeight(),
+                    bitmap.getHeight()
+            );
+
+        } else {
+            dimensionFromCamera = bitmap.getWidth();
+            dstBmp = Bitmap.createBitmap(
+                    bitmap,
+                    0,
+                    bitmap.getHeight() / 2 - bitmap.getWidth() / 2,
+                    bitmap.getWidth(),
+                    bitmap.getWidth()
+            );
+        }
+
+        return dstBmp;
+    }
+
 }

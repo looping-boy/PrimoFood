@@ -4,52 +4,83 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            android:layout_margin="30dp"
             android:layout_gravity="center"
+            android:layout_margin="30dp"
             app:cardBackgroundColor="@android:color/transparent"
-            app:cardElevation="16dp"
-            >
+            app:cardCornerRadius="16dp"
+            app:cardElevation="16dp">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/picturePreview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                app:layout_constraintDimensionRatio="1:1" />
+                android:adjustViewBounds="true" />
 
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
-            android:visibility="invisible"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
+            android:layout_gravity="center"
             android:layout_margin="30dp"
-
-            >
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="16dp">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/pictureOverlay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                app:layout_constraintDimensionRatio="1:1" />
+                android:adjustViewBounds="true" />
 
         </androidx.cardview.widget.CardView>
 
     </RelativeLayout>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Taking picture of a Screen"
+            android:textAlignment="center"
+            android:layout_marginHorizontal="10dp"
+            />
+
+        <SeekBar
+            android:id="@+id/knobSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="10dp"
+            android:layout_weight="1"
+            android:max="1"
+            android:progressDrawable="@drawable/seekbartrack"
+            android:splitTrack="false"
+            android:thumb="@drawable/knob_thumb"
+            android:thumbOffset="0dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:layout_marginHorizontal="10dp"
+            android:text="Taking picture of E-Ink or Paper" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -58,28 +89,28 @@
         android:orientation="horizontal">
 
 
-<!--        <LinearLayout-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="vertical">-->
+        <!--        <LinearLayout-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:orientation="vertical">-->
 
-<!--            <Button-->
-<!--                android:id="@+id/textrecognition"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="10dp"-->
-<!--                android:layout_marginEnd="10dp"-->
-<!--                android:text="Texts" />-->
+        <!--            <Button-->
+        <!--                android:id="@+id/textrecognition"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_marginStart="10dp"-->
+        <!--                android:layout_marginEnd="10dp"-->
+        <!--                android:text="Texts" />-->
 
-<!--            <Button-->
-<!--                android:id="@+id/barCode"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="10dp"-->
-<!--                android:layout_marginEnd="10dp"-->
-<!--                android:text="Barcodes" />-->
+        <!--            <Button-->
+        <!--                android:id="@+id/barCode"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_marginStart="10dp"-->
+        <!--                android:layout_marginEnd="10dp"-->
+        <!--                android:text="Barcodes" />-->
 
-<!--        </LinearLayout>-->
+        <!--        </LinearLayout>-->
 
     </LinearLayout>
 
@@ -93,16 +124,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:fontFamily="@font/euro"
-        tools:text="4€50"
-        android:padding="20dp"
         android:elevation="10dp"
+        android:fontFamily="@font/euro"
+        android:padding="20dp"
         android:shadowColor="#33000000"
         android:shadowDx="10"
         android:shadowDy="10"
         android:shadowRadius="20"
         android:textColor="@color/black"
-        android:textSize="100sp" />
+        android:textSize="100sp"
+        tools:text="4€50" />
 
     <!--    <LinearLayout-->
     <!--        android:layout_width="match_parent"-->
@@ -125,13 +156,13 @@
         android:id="@+id/button_first"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:gravity="center"
+        android:layout_margin="30dp"
         android:background="@drawable/button_state"
         android:elevation="10dp"
-        android:shadowDx="10"
+        android:gravity="center"
         android:padding="10dp"
-        android:layout_margin="30dp"
-        android:textColor="@color/white"
-        android:text="Camera" />
+        android:shadowDx="10"
+        android:text="Camera"
+        android:textColor="@color/white" />
 
 </LinearLayout>

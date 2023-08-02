@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     public static MatOfFloat scoresMatPriceTag;
     public static MatOfRect2d boxesMatPriceTag;
 
+    public static boolean screenMode = true;
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {

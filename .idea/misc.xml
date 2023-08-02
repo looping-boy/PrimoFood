@@ -4,9 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/button_state.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/knob_thumb.xml" value="0.199" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner.xml" value="0.2455" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner_focused.xml" value="0.2455" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner_pressed.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/seekbartrack.xml" value="0.2325" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/shadow.xml" value="0.2455" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/layout/activity_main.xml" value="0.36666666666666664" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/layout/activity_tflite.xml" value="0.17291666666666666" />
