@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.PrimofoodProto" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">#7764E8</item>
+        <item name="colorPrimaryVariant">#7764E8</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -19,7 +19,13 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.PrimofoodProto.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.PrimofoodProto.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+    </style>
 
-    <style name="Theme.PrimofoodProto.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.PrimofoodProto.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" >
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+    </style>
 </resources>

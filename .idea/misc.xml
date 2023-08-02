@@ -3,6 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/button_state.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner_focused.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/rounded_corner_pressed.xml" value="0.2455" />
+        <entry key="..\:/Travail/Android/Primofood/app/src/main/res/drawable/shadow.xml" value="0.2455" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/layout/activity_main.xml" value="0.36666666666666664" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/layout/activity_tflite.xml" value="0.17291666666666666" />
         <entry key="..\:/Travail/Android/Primofood/app/src/main/res/layout/content_main.xml" value="0.36666666666666664" />

@@ -107,61 +107,63 @@ public class DigitProcess {
             }
 
 
-//            if (!boxes.isEmpty()) {
-//                // DETECT THE MOST TALL NUMBER :
-//                float tallest = boxes.get(0).y2 - boxes.get(0).y1;
-//                int tallestId = 0;
-//                for (int j = 1; j < boxes.size(); j++) {
-//                    float boxHeight = boxes.get(j).y2 - boxes.get(j).y1;
-//                    if (tallest < boxHeight) {
-//                        tallest = boxHeight;
-//                        tallestId = j;
-//                    }
-//                }
-//
-//                // PUT IT IN THE FIRST PLACE OF THE LIST :
-//                boxes.add(0, boxes.get(tallestId));
-//                boxes.remove(tallestId);
-//                boxesStored.add(0, boxesStored.get(tallestId));
-//                boxesStored.remove(tallestId);
-//
-//                float bias = 10f;
-//
-//                for (int k = 0; k < boxes.size(); k++) {
-//                    if (boxes.size() > 0 && k <= boxes.size() - 1) {
-//                        // REMOVE WHAT's ON THE LEFT OF TALLEST :
-//                        if (boxes.get(k).x1 < boxes.get(tallestId).x1) {
-//                            boxes.remove(k);
-//                            boxesStored.remove(k);
-//                            k--;
-//                            continue;
-//                        }
-//                        // REMOVE WHAT's ON THE TOP OF TALLEST :
-//                        if (boxes.get(k).y1 < boxes.get(tallestId).y1) {
-//                            boxes.remove(k);
-//                            boxesStored.remove(k);
-//                            k--;
-//                            continue;
-//                        }
-//                        // REMOVE WHAT's ON THE BOTTOM OF TALLEST :
-//                        if (boxes.get(k).y2 - bias > boxes.get(tallestId).y2) {
-//                            boxes.remove(k);
-//                            boxesStored.remove(k);
-//                            k--;
-//                            continue;
-//                        }
-//                        // REMOVE NUMBER IF TOO FAR AWAY FROM FIRST NUMBER :
-//                        float distanceX2 = boxes.get(tallestId).x1 + (boxes.get(0).y2 - boxes.get(0).y1);
-//                        if (boxes.get(k).x2 > distanceX2 + bias) {
-//                            boxes.remove(k);
-//                            boxesStored.remove(k);
-//                            k--;
-//                        }
-//                    }
-//
-//                }
-//
-//            }
+            if (!boxes.isEmpty()) {
+                // DETECT THE MOST TALL NUMBER :
+                float tallest = boxes.get(0).y2 - boxes.get(0).y1;
+                int tallestId = 0;
+                for (int j = 1; j < boxes.size(); j++) {
+                    float boxHeight = boxes.get(j).y2 - boxes.get(j).y1;
+                    if (tallest < boxHeight) {
+                        tallest = boxHeight;
+                        tallestId = j;
+                    }
+                }
+
+                // PUT IT IN THE FIRST PLACE OF THE LIST :
+                boxes.add(0, boxes.get(tallestId));
+                boxesStored.add(0, boxesStored.get(tallestId));
+                tallestId++;
+                boxes.remove(tallestId);
+                boxesStored.remove(tallestId);
+                tallestId = 0;
+
+                float bias = 10f;
+
+                for (int k = 0; k < boxes.size(); k++) {
+                    if (boxes.size() > 0 && k <= boxes.size() - 1) {
+                        // REMOVE WHAT's ON THE LEFT OF TALLEST :
+                        if (boxes.get(k).x1 < boxes.get(tallestId).x1) {
+                            boxes.remove(k);
+                            boxesStored.remove(k);
+                            k--;
+                            continue;
+                        }
+                        // REMOVE WHAT's ON THE TOP OF TALLEST :
+                        if (boxes.get(k).y1 < boxes.get(tallestId).y1) {
+                            boxes.remove(k);
+                            boxesStored.remove(k);
+                            k--;
+                            continue;
+                        }
+                        // REMOVE WHAT's ON THE BOTTOM OF TALLEST :
+                        if (boxes.get(k).y2 - bias > boxes.get(tallestId).y2) {
+                            boxes.remove(k);
+                            boxesStored.remove(k);
+                            k--;
+                            continue;
+                        }
+                        // REMOVE NUMBER IF TOO FAR AWAY FROM FIRST NUMBER :
+                        float distanceX2 = boxes.get(tallestId).x1 + (boxes.get(0).y2 - boxes.get(0).y1);
+                        if (boxes.get(k).x2 > distanceX2 + bias) {
+                            boxes.remove(k);
+                            boxesStored.remove(k);
+                            k--;
+                        }
+                    }
+
+                }
+
+            }
 
             model.close();
 

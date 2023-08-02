@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -55,6 +56,15 @@ public class FirstFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        ((MainActivity) getActivity()).setTitle("hello");
+
+        // Get the ActionBar or Toolbar reference
+        ActionBar actionBar = ((MainActivity) getActivity()).getSupportActionBar();
+        // Set the title for the ActionBar/Toolbar
+        if (actionBar != null) {
+            actionBar.setTitle("Your Title"); // Replace "Your Title" with the desired title
+        }
+
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -67,40 +77,44 @@ public class FirstFragment extends Fragment {
             }
         });
 
+
         binding.picturePreview.setImageResource(pictureResId);
         binding.pictureOverlay.setImageBitmap(null);
 
-        binding.textrecognition.setOnClickListener(v -> {
-            Bitmap bitmap = loadBitmap(pictureResId);
-            updatePictureWithBoxes(bitmap);
-        });
+//        binding.textrecognition.setOnClickListener(v -> {
+//            Bitmap bitmap = loadBitmap(pictureResId);
+//            updatePictureWithBoxes(bitmap);
+//        });
 
-        binding.barCode.setOnClickListener(v -> {
-            Bitmap bitmap = loadBitmap(pictureResId);
-            barCode(bitmap);
-        });
+//        binding.barCode.setOnClickListener(v -> {
+//            Bitmap bitmap = loadBitmap(pictureResId);
+//            barCode(bitmap);
+//        });
 
         // ----- FOR TEST -------------
-        Bitmap bitmap = loadBitmap(R.drawable.script_figures);
+        Bitmap bitmap = loadBitmap(R.drawable.output);
         updatePictureWithBoxes(bitmap);
 
     }
 
     private void updatePictureWithBoxes(Bitmap bitmap) {
+//        Bitmap bitmapCopy = bitmap.copy(bitmap.getConfig(), true);
+//        bitmapCopy = Bitmap.createScaledBitmap(bitmap, 640, 640, false);
+
         if (bitmap != null) {
             bitmap = Bitmap.createScaledBitmap(bitmap, 320, 320, false);
             binding.picturePreview.setImageBitmap(bitmap);
 
             DrawingProcess drawingProcess = new DrawingProcess();
-            ArrayList<RectInformation> digitBoxesBefore = digitProcess.getBoxesWithAIBefore(this.getContext(), bitmap);
+//            ArrayList<RectInformation> digitBoxesBefore = digitProcess.getBoxesWithAIBefore(this.getContext(), bitmap);
             ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
             ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
 
-            BitmapCanvas canvasWithDigitsBefore = drawingProcess.drawBoxes(bitmap, digitBoxesBefore, 0xFF00FFFF, 6);
-            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000, 3);
-            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00, 3);
+//            BitmapCanvas canvasWithDigitsBefore = drawingProcess.drawBoxes(bitmap, digitBoxesBefore, 0xFF00FFFF, 4);
+            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000, 2);
+            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00, 2);
 //
-            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
+//            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
             String price = digitProcess.giveThePriceString();
             binding.result.setText(price);
         }
@@ -160,7 +174,7 @@ public class FirstFragment extends Fragment {
                 int dimension = Math.min(image.getWidth(), image.getHeight());
                 image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
 
-                image = Bitmap.createScaledBitmap(image, 320, 320, false);
+//                image = Bitmap.createScaledBitmap(image, 320, 320, false);
                 updatePictureWithBoxes(image);
 
             } else {
@@ -172,7 +186,7 @@ public class FirstFragment extends Fragment {
                     e.printStackTrace();
                 }
 
-                image = Bitmap.createScaledBitmap(image, 320, 320, false);
+//                image = Bitmap.createScaledBitmap(image, 320, 320, false);
                 updatePictureWithBoxes(image);
 
             }
