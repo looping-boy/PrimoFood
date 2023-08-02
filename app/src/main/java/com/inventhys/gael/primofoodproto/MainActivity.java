@@ -1,6 +1,5 @@
 package com.inventhys.gael.primofoodproto;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
-    public static MatOfFloat scoresMat;
-    public static MatOfRect2d boxesMat;
+    public static MatOfFloat scoresMatDigit;
+    public static MatOfRect2d boxesMatDigit;
+    public static MatOfFloat scoresMatPriceTag;
+    public static MatOfRect2d boxesMatPriceTag;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -40,8 +41,10 @@ public class MainActivity extends AppCompatActivity {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i("OpenCV", "OpenCV loaded successfully");
-                    scoresMat = new MatOfFloat();
-                    boxesMat = new MatOfRect2d();
+                    scoresMatDigit = new MatOfFloat();
+                    boxesMatDigit = new MatOfRect2d();
+                    scoresMatPriceTag = new MatOfFloat();
+                    boxesMatPriceTag = new MatOfRect2d();
                 } break;
                 default:
                 {

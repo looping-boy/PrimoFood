@@ -18,17 +18,17 @@ public class DrawingProcess {
     private final float FRAME_RATIO = 4 / 3f;
     private Rect tmpRect = new Rect();
 
-    public BitmapCanvas drawBoxes(Bitmap bitmap, ArrayList<RectInformation> boxes, int color) {
+    public BitmapCanvas drawBoxes(Bitmap bitmap, ArrayList<RectInformation> boxes, int color, int strokeWidth) {
         BitmapCanvas bitmapCanvas = new BitmapCanvas();
         Paint paint = new Paint();
 
         bitmapCanvas.bitmap = bitmap;
         bitmapCanvas.canvas = new Canvas(bitmapCanvas.bitmap);
 
-        paint.setStrokeWidth(3);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(color);
-        bitmapCanvas.canvas.drawRect(1, 1, bitmapCanvas.bitmap.getWidth() - 2, bitmapCanvas.bitmap.getHeight() - 2, paint);
+//        paint.setStrokeWidth(3);
+//        paint.setStyle(Paint.Style.STROKE);
+//        paint.setColor(color);
+//        bitmapCanvas.canvas.drawRect(1, 1, bitmapCanvas.bitmap.getWidth() - 2, bitmapCanvas.bitmap.getHeight() - 2, paint);
 
         for (RectInformation block : boxes) {
             Rect rect = new Rect();
@@ -38,7 +38,7 @@ public class DrawingProcess {
             rect.bottom = (int) block.y2;
 
             paint.setColor(color);
-            paint.setStrokeWidth(2);
+            paint.setStrokeWidth(strokeWidth);
             paint.setStyle(Paint.Style.STROKE);
             bitmapCanvas.canvas.drawRect(rect, paint);
         }

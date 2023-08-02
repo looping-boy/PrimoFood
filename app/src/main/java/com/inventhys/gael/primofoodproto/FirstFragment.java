@@ -92,13 +92,15 @@ public class FirstFragment extends Fragment {
             binding.picturePreview.setImageBitmap(bitmap);
 
             DrawingProcess drawingProcess = new DrawingProcess();
+            ArrayList<RectInformation> digitBoxesBefore = digitProcess.getBoxesWithAIBefore(this.getContext(), bitmap);
             ArrayList<RectInformation> digitBoxes = digitProcess.getBoxesWithAI(this.getContext(), bitmap);
-            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000);
+            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
 
-//            ArrayList<RectInformation> priceTagBoxes = priceTagProcess.getBoxesWithAI(this.getContext(), bitmap);
-//            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00);
+            BitmapCanvas canvasWithDigitsBefore = drawingProcess.drawBoxes(bitmap, digitBoxesBefore, 0xFF00FFFF, 6);
+            BitmapCanvas canvasWithDigits = drawingProcess.drawBoxes(bitmap, digitBoxes, 0xFFFF0000, 3);
+            BitmapCanvas canvasWithDigitAndPriceTag = drawingProcess.drawBoxes(bitmap, priceTagBoxes, 0xFFFFFF00, 3);
 //
-            binding.pictureOverlay.setImageBitmap(canvasWithDigits.bitmap);
+            binding.pictureOverlay.setImageBitmap(canvasWithDigitAndPriceTag.bitmap);
             String price = digitProcess.giveThePriceString();
             binding.result.setText(price);
         }

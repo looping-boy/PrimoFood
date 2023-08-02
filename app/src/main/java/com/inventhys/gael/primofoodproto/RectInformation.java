@@ -1,8 +1,5 @@
 package com.inventhys.gael.primofoodproto;
 
-import static com.inventhys.gael.primofoodproto.MainActivity.boxesMat;
-import static com.inventhys.gael.primofoodproto.MainActivity.scoresMat;
-
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfRect2d;
@@ -88,7 +85,7 @@ public class RectInformation {
         return result;
     }
 
-    public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold) {
+    public static List<Integer> NMSBoxes(List<float[]> bboxes, List<Float> probabilities, float scoreThreshold, float nmsThreshold, MatOfFloat scoresMat, MatOfRect2d boxesMat) {
         List<Integer> indices = new ArrayList<>();
         if (bboxes.isEmpty() || probabilities.isEmpty()) {
             return indices;

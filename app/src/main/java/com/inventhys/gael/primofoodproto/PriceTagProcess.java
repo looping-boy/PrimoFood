@@ -1,38 +1,22 @@
 package com.inventhys.gael.primofoodproto;
 
-import static com.inventhys.gael.primofoodproto.MainActivity.boxesMat;
-import static com.inventhys.gael.primofoodproto.MainActivity.scoresMat;
+import static com.inventhys.gael.primofoodproto.MainActivity.boxesMatPriceTag;
+import static com.inventhys.gael.primofoodproto.MainActivity.scoresMatPriceTag;
 import static org.opencv.dnn.Dnn.NMSBoxes;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.text.TextUtils;
-import android.util.Log;
 
-import com.google.mlkit.vision.barcode.common.Barcode;
 import com.inventhys.gael.primofoodproto.ml.Pricetag;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfRect2d;
-import org.opencv.core.Rect2d;
-import org.opencv.dnn.Dnn;
-import org.opencv.utils.Converters;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.transform.Result;
 
 public class PriceTagProcess {
 
@@ -99,7 +83,7 @@ public class PriceTagProcess {
             OutputDataRefactor outputDataRefactor = RectInformation.parseRowDict(outputDataTransposed, 6);
 
             // PERFORM A NON MAXIMUM SUPPRESSION TO FILTER OUT THE OVERLAPPING BOXES :
-            List<Integer> cleanBoxIdx = RectInformation.NMSBoxes(outputDataRefactor.bboxes, outputDataRefactor.probabilities, 0.5f, 0.8f);
+            List<Integer> cleanBoxIdx = RectInformation.NMSBoxes(outputDataRefactor.bboxes, outputDataRefactor.probabilities, 0.5f, 0.8f, scoresMatPriceTag , boxesMatPriceTag);
 
             // STORE ALL THE BOXES :
             for (int i = 0; i < cleanBoxIdx.size(); i++) {
